@@ -48,3 +48,17 @@ describe('typography', () => {
     expect(typography.label.letterSpacing).toBeGreaterThan(0);
   });
 });
+
+import { theme, useTheme } from '../theme';
+
+describe('theme', () => {
+  it('bundles colors, spacing, radius, and typography', () => {
+    expect(theme.colors.accent).toBe('#6ee7b7');
+    expect(theme.spacing.md).toBe(16);
+    expect(theme.radius.card).toBe(14);
+    expect(theme.typography.title.fontSize).toBe(24);
+  });
+  it('useTheme returns the same theme object', () => {
+    expect(useTheme()).toBe(theme);
+  });
+});
