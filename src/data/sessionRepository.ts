@@ -47,3 +47,15 @@ export function getRecentSessions(limit: number): SessionRow[] {
   );
   return result.rows as SessionRow[];
 }
+
+/** Total planned minutes from completed sessions that started on the given day. */
+export function getCompletedFocusMinutesForDay(dayKey: string): number {
+  const result = getDatabase().execute(
+    `SELECT COALESCE(SUM(duration_planned), 0) AS total
+     FROM sessions
+     WHERE completed = 1 AND substr(started_at, 1, 10) = ?`,
+    [dayKey],
+  );
+  const row = result.rows[0] as { total: number | null } | undefined;
+  return Number(row?.total ?? 0);
+}

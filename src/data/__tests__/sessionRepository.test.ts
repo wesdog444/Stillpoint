@@ -4,6 +4,7 @@ import {
   completeSession,
   getSessionsForDay,
   getRecentSessions,
+  getCompletedFocusMinutesForDay,
 } from '../sessionRepository';
 
 const opSqlite = require('@op-engineering/op-sqlite');
@@ -58,5 +59,35 @@ describe('sessionRepository', () => {
     expect(recent).toHaveLength(2);
     expect(recent[0].started_at).toBe('2026-05-20T10:00:00.000Z');
     expect(recent[1].started_at).toBe('2026-05-20T09:00:00.000Z');
+  });
+
+  it('getCompletedFocusMinutesForDay sums only completed sessions for the day', () => {
+    const completedMorning = insertSession({
+      startedAt: '2026-05-20T08:00:00.000Z',
+      durationPlanned: 25,
+      presetId: null,
+    });
+    const completedEvening = insertSession({
+      startedAt: '2026-05-20T18:00:00.000Z',
+      durationPlanned: 50,
+      presetId: null,
+    });
+    insertSession({
+      startedAt: '2026-05-20T20:00:00.000Z',
+      durationPlanned: 90,
+      presetId: null,
+    });
+    const otherDay = insertSession({
+      startedAt: '2026-05-21T08:00:00.000Z',
+      durationPlanned: 30,
+      presetId: null,
+    });
+    completeSession(completedMorning, '2026-05-20T08:25:00.000Z');
+    completeSession(completedEvening, '2026-05-20T18:50:00.000Z');
+    completeSession(otherDay, '2026-05-21T08:30:00.000Z');
+
+    expect(getCompletedFocusMinutesForDay('2026-05-20')).toBe(75);
+    expect(getCompletedFocusMinutesForDay('2026-05-21')).toBe(30);
+    expect(getCompletedFocusMinutesForDay('2026-05-22')).toBe(0);
   });
 });
