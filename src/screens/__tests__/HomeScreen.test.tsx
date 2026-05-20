@@ -15,6 +15,10 @@ describe('HomeScreen', () => {
     useSessionStore.setState({ activeSession: null });
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('creates starter presets from the empty state', () => {
     render(<HomeScreen />);
     fireEvent.press(screen.getByText('Create starter presets'));
@@ -45,5 +49,36 @@ describe('HomeScreen', () => {
     expect(screen.getByText('Complete')).toBeTruthy();
     fireEvent.press(screen.getByText('Done'));
     expect(useSessionStore.getState().activeSession).toBeNull();
+  });
+
+  it('ticks a running session while Home is mounted', () => {
+    jest.useFakeTimers();
+    render(<HomeScreen />);
+    fireEvent.press(screen.getByText('Create starter presets'));
+    fireEvent.press(screen.getByText('Deep Work'));
+
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(screen.getByText('49:59')).toBeTruthy();
+  });
+
+  it('shows today focused minutes and streak stats after completion', () => {
+    render(<HomeScreen />);
+    expect(screen.getByText('0 min focused')).toBeTruthy();
+    expect(screen.getByText('0 day streak')).toBeTruthy();
+    fireEvent.press(screen.getByText('Create starter presets'));
+    fireEvent.press(screen.getByText('Reading'));
+
+    act(() => {
+      for (let i = 0; i < 25 * 60; i += 1) {
+        useSessionStore.getState().tick();
+      }
+    });
+
+    expect(screen.getByText('25 min focused')).toBeTruthy();
+    expect(screen.getByText('1 day streak')).toBeTruthy();
+    expect(screen.getByText('1 longest')).toBeTruthy();
   });
 });

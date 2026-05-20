@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FocusOrb } from '../components/FocusOrb';
@@ -6,6 +6,9 @@ import { PresetTile } from '../components/PresetTile';
 import { useTheme } from '../theme/theme';
 import { usePresetStore, type PresetDraft } from '../state/presetStore';
 import { useSessionStore } from '../state/sessionStore';
+import { getCompletedFocusMinutesForDay } from '../data/sessionRepository';
+import { getCurrentStreak, getLongestStreak } from '../data/streakRepository';
+import { todayKey } from '../lib/dates';
 
 const STARTER_PRESETS: PresetDraft[] = [
   { name: 'Deep Work', durationMinutes: 50, frictionMode: 'hard' },
@@ -19,6 +22,7 @@ export function HomeScreen() {
   const createPreset = usePresetStore((state) => state.createPreset);
   const activeSession = useSessionStore((state) => state.activeSession);
   const startSession = useSessionStore((state) => state.startSession);
+  const tick = useSessionStore((state) => state.tick);
   const cancelSession = useSessionStore((state) => state.cancelSession);
   const dismissComplete = useSessionStore((state) => state.dismissComplete);
   const [seeded, setSeeded] = useState(false);
@@ -26,11 +30,24 @@ export function HomeScreen() {
   const sessionStatus = activeSession?.status ?? 'idle';
   const remainingSeconds = activeSession?.remainingSeconds ?? 0;
   const durationSeconds = activeSession ? activeSession.durationMinutes * 60 : 0;
+  const focusedTodayMinutes = getCompletedFocusMinutesForDay(todayKey());
+  const currentStreak = getCurrentStreak();
+  const longestStreak = getLongestStreak();
   const headline = useMemo(() => {
     if (activeSession?.status === 'running') return 'Stay with the session';
     if (activeSession?.status === 'complete') return 'Nice work';
     return 'Find your stillpoint';
   }, [activeSession?.status]);
+
+  useEffect(() => {
+    if (activeSession?.status !== 'running') return undefined;
+
+    const timer = setInterval(() => {
+      tick();
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [activeSession?.status, tick]);
 
   const seedStarterPresets = () => {
     STARTER_PRESETS.forEach((preset) => createPreset(preset));
@@ -50,6 +67,33 @@ export function HomeScreen() {
           <Text style={[theme.typography.body, styles.subtitle, { color: theme.colors.textSecondary }]}>
             Start small, keep the phone quiet, and make the calm version the easy path.
           </Text>
+        </View>
+
+        <View style={styles.statsRow}>
+          <View style={[styles.statCard, { backgroundColor: theme.colors.bgRaised, borderColor: theme.colors.border }]}>
+            <Text style={[theme.typography.label, styles.statLabel, { color: theme.colors.textMuted }]}>
+              Focused
+            </Text>
+            <Text style={[theme.typography.cardTitle, { color: theme.colors.textPrimary }]}>
+              {focusedTodayMinutes} min focused
+            </Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: theme.colors.bgRaised, borderColor: theme.colors.border }]}>
+            <Text style={[theme.typography.label, styles.statLabel, { color: theme.colors.textMuted }]}>
+              Current
+            </Text>
+            <Text style={[theme.typography.cardTitle, { color: theme.colors.accent }]}>
+              {currentStreak} {currentStreak === 1 ? 'day' : 'day'} streak
+            </Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: theme.colors.bgRaised, borderColor: theme.colors.border }]}>
+            <Text style={[theme.typography.label, styles.statLabel, { color: theme.colors.textMuted }]}>
+              Best
+            </Text>
+            <Text style={[theme.typography.cardTitle, { color: theme.colors.textPrimary }]}>
+              {longestStreak} longest
+            </Text>
+          </View>
         </View>
 
         <FocusOrb
@@ -146,6 +190,21 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     lineHeight: 21,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  statCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    flex: 1,
+    gap: 6,
+    minHeight: 72,
+    padding: 12,
+  },
+  statLabel: {
+    textTransform: 'uppercase',
   },
   actions: {
     alignItems: 'center',
