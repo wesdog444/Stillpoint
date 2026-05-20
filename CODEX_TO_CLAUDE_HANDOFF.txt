@@ -1,6 +1,6 @@
 Stillpoint handoff from Codex to Claude
 Date: 2026-05-20
-Current branch when written: codex/focus-ui-polish
+Current branch when written: master
 
 Read first
 - C:\Users\wesle\Documents\chathistory.txt
@@ -10,96 +10,158 @@ Read first
 - docs/superpowers/plans/2026-05-20-focus-ui.md
 - docs/superpowers/plans/2026-05-20-focus-ui-polish.md
 
-Session summary so far
-- User asked Codex to work on the next Focus UI polish slice and warned that usage/context may be near the limit. They explicitly requested frequent handoff updates and said the handoff can be extra long.
-- Codex inspected the repo state on master. Previous phases are already merged:
+Session summary
+- User asked Codex to work on the next Focus UI polish slice after Plan 3, and warned that the usage/context limit may be close. They explicitly requested frequent handoff updates and said the handoff can be extra long.
+- Codex inspected the repo state on master. Previous phases were already merged:
   - Foundation complete.
   - Focus Engine Core complete.
   - Focus UI Core complete, including Home dashboard, starter presets, FocusOrb, PresetTile, and tests.
-- Codex used the relevant skills for planning/TDD/UI work and re-checked the Expo SDK 54 docs before coding.
+- Codex used the relevant planning/TDD/UI/verification workflows and re-checked Expo SDK 54 docs before coding. No new package was added.
 - Codex created branch codex/focus-ui-polish.
-- Codex wrote docs/superpowers/plans/2026-05-20-focus-ui-polish.md.
-- Codex committed the initial plan/handoff: 86d1010 docs: add Focus UI polish plan and handoff.
-- Codex completed Task 1:
-  1. Added a failing repository test for summing completed focus minutes by day.
-  2. Confirmed the test failed because getCompletedFocusMinutesForDay did not exist.
-  3. Added getCompletedFocusMinutesForDay(dayKey: string) to src/data/sessionRepository.ts.
-  4. Re-ran npx jest src/data/__tests__/sessionRepository.test.ts successfully.
-  5. Ran npx tsc --noEmit successfully.
-  6. Committed c184a61 feat: add completed focus minutes query.
-- Codex completed Task 2:
-  1. Added failing HomeScreen tests for interval ticking and Home stats.
-  2. Confirmed HomeScreen tests failed because the timer did not tick and stat text did not exist.
-  3. Updated HomeScreen to run a setInterval while activeSession.status is running.
-  4. Added Home stat cards for completed minutes today, current streak, and longest streak.
-  5. The RootNavigator test then failed because it renders Home directly without App's initDatabase step; Codex fixed RootNavigator.test.tsx to reset/init the DB in beforeEach, matching the real App lifecycle.
-  6. Re-ran HomeScreen and RootNavigator focused tests successfully.
-  7. Ran npx tsc --noEmit successfully.
-  8. Committed 1608280 feat: add live home stats and ticking.
-- Codex completed Task 3:
-  1. Added failing HomeScreen tests for New preset, editing Reading into Night Read, and deleting Wind Down.
-  2. Confirmed the tests failed because Home had no New preset/Edit/Delete preset controls.
-  3. Added inline editor state to HomeScreen with TextInput fields for preset name and duration.
-  4. Added friction-mode selector buttons for Hard, Soft, Intention, and Cheat.
-  5. Wired Save preset to createPreset/editPreset and Delete preset to removePreset.
-  6. Re-ran npx jest src/screens/__tests__/HomeScreen.test.tsx successfully.
-  7. Ran npx tsc --noEmit successfully.
-  8. Committed 594688a feat: add inline preset editor.
-- Codex completed Task 4 verification on codex/focus-ui-polish:
-  1. npx jest passed: 18 suites, 88 tests.
-  2. npx tsc --noEmit passed.
-  3. npx expo export --platform ios --output-dir ./.tmp-export passed and the temp export directory was removed.
-  4. npx expo-doctor passed: 17/17 checks.
-- Scope for this slice:
-  1. Add a completed-minutes query to sessionRepository. DONE.
-  2. Make Home tick active sessions every second and show today/streak stats. DONE.
-  3. Add a minimal inline preset editor to create/edit/delete presets on Home. DONE.
-  4. Run full verification and merge when clean. VERIFIED; MERGE NEXT.
+- Codex wrote and committed docs/superpowers/plans/2026-05-20-focus-ui-polish.md.
+- Codex kept this handoff updated throughout the work so Claude could resume from multiple checkpoints if usage was cut off.
+
+Work completed this session
+1. Focus UI Polish plan
+   - Added docs/superpowers/plans/2026-05-20-focus-ui-polish.md.
+   - Scope: completed-minutes query, live Home ticking, Home stats, inline preset editor, final verification.
+   - Commit: 86d1010 docs: add Focus UI polish plan and handoff
+
+2. Completed focus minutes query
+   - Added a failing test in src/data/__tests__/sessionRepository.test.ts proving completed sessions sum by day and incomplete sessions do not count.
+   - Confirmed focused test failed because getCompletedFocusMinutesForDay did not exist.
+   - Added getCompletedFocusMinutesForDay(dayKey: string) to src/data/sessionRepository.ts.
+   - Re-ran npx jest src/data/__tests__/sessionRepository.test.ts successfully.
+   - Ran npx tsc --noEmit successfully.
+   - Commit: c184a61 feat: add completed focus minutes query
+
+3. Live Home stats and ticking
+   - Added failing HomeScreen tests proving:
+     - an active session ticks down while Home is mounted;
+     - Home shows 0 min focused / 0 day streak initially;
+     - completing a 25-minute session updates Home to 25 min focused, 1 day streak, 1 longest.
+   - Confirmed HomeScreen tests failed because Home did not own a timer interval or stat row.
+   - Updated HomeScreen to run a setInterval while activeSession.status is running.
+   - Added stat cards using:
+     - getCompletedFocusMinutesForDay(todayKey())
+     - getCurrentStreak()
+     - getLongestStreak()
+   - The RootNavigator test then failed because it rendered Home directly without App's initDatabase step. Codex fixed RootNavigator.test.tsx to reset/init the DB in beforeEach, matching the real App lifecycle.
+   - Re-ran HomeScreen and RootNavigator focused tests successfully.
+   - Ran npx tsc --noEmit successfully.
+   - Commit: 1608280 feat: add live home stats and ticking
+
+4. Inline preset editor
+   - Added failing HomeScreen tests proving:
+     - tapping New preset opens editable fields and saving creates a preset;
+     - tapping Edit Reading updates the existing preset;
+     - deleting Wind Down removes it.
+   - Confirmed tests failed because Home had no New preset/Edit/Delete controls.
+   - Added inline editor state to HomeScreen.
+   - Added TextInput fields for preset name and duration.
+   - Added friction-mode selector buttons for Hard, Soft, Intention, and Cheat.
+   - Wired Save preset to createPreset/editPreset.
+   - Wired Delete preset to removePreset.
+   - Re-ran npx jest src/screens/__tests__/HomeScreen.test.tsx successfully.
+   - Ran npx tsc --noEmit successfully.
+   - Commit: 594688a feat: add inline preset editor
+
+5. Verification and merge
+   - Ran full verification on codex/focus-ui-polish:
+     - npx jest: passed, 18 suites, 88 tests.
+     - npx tsc --noEmit: passed.
+     - npx expo export --platform ios --output-dir ./.tmp-export: passed, temp export removed.
+     - npx expo-doctor: passed, 17/17 checks.
+   - Merged codex/focus-ui-polish into master by fast-forward.
+   - Ran verification on master:
+     - npx jest: passed, 18 suites, 88 tests.
+     - npx tsc --noEmit: passed.
+     - npx expo export --platform ios --output-dir ./.tmp-export: passed, temp export removed.
+     - npx expo-doctor: passed, 17/17 checks.
+   - Deleted branch codex/focus-ui-polish.
 
 Current state
-- Branch: codex/focus-ui-polish
-- Base branch: master
-- Worktree currently has:
-  - modified CODEX_TO_CLAUDE_HANDOFF.txt for this progress checkpoint
-- Latest completed code commit: 594688a feat: add inline preset editor.
-- Verification completed on feature branch.
+- Branch: master
+- Worktree: clean except this final handoff update before commit.
+- codex/focus-ui-polish: merged and deleted.
+- Foundation: complete and merged.
+- Focus Engine Core: complete and merged.
+- Focus UI Core: complete and merged.
+- Focus UI Polish: complete and merged.
 
-Step-by-step of the in-flight task
-1. Commit this updated handoff checkpoint if not already committed:
-   - git add CODEX_TO_CLAUDE_HANDOFF.txt
-   - git commit -m "docs: checkpoint focus UI polish handoff"
-2. Commit this updated handoff checkpoint if not already committed:
-   - git add CODEX_TO_CLAUDE_HANDOFF.txt
-   - git commit -m "docs: checkpoint focus UI polish handoff after stats"
-3. Commit this updated handoff checkpoint if not already committed:
-   - git add CODEX_TO_CLAUDE_HANDOFF.txt
-   - git commit -m "docs: checkpoint focus UI polish handoff after editor"
-4. If this handoff is being read before merge:
-   - Commit this handoff update if not already committed.
-   - Merge codex/focus-ui-polish to master by fast-forward.
-   - Re-run at least npx jest on master, preferably all checks.
-   - Delete codex/focus-ui-polish after merge.
-   - Update this handoff one final time on master with final state.
+Commits created in this session
+- 86d1010 docs: add Focus UI polish plan and handoff
+- c184a61 feat: add completed focus minutes query
+- 60d6038 docs: checkpoint focus UI polish handoff
+- 1608280 feat: add live home stats and ticking
+- 08aaf99 docs: checkpoint focus UI polish handoff after stats
+- 594688a feat: add inline preset editor
+- e453656 docs: checkpoint focus UI polish handoff after editor
+- f8db488 docs: update focus UI polish verification handoff
+- A final commit after this file update should record the final master-state handoff.
+
+Files added or changed this session
+- docs/superpowers/plans/2026-05-20-focus-ui-polish.md
+- src/data/sessionRepository.ts
+- src/data/__tests__/sessionRepository.test.ts
+- src/nav/__tests__/RootNavigator.test.tsx
+- src/screens/HomeScreen.tsx
+- src/screens/__tests__/HomeScreen.test.tsx
+- CODEX_TO_CLAUDE_HANDOFF.txt
+
+What Home can do now
+- Shows a real focus dashboard.
+- Shows today's completed focus minutes.
+- Shows current streak and longest streak.
+- Can create starter presets.
+- Can create a custom preset from Home.
+- Can edit an existing preset from Home.
+- Can delete a preset from Home.
+- Can start a session from a preset.
+- Ticks an active session every second while Home is mounted.
+- Shows completed state and lets user dismiss it.
+- Can cancel a running session.
+
+Step-by-step if continuing immediately
+1. Confirm git status is clean on master.
+2. The next major plan should likely be Sanitized Social Browser, unless the user wants more Focus UI polish first.
+3. Before coding the browser, read Expo SDK 54 docs for react-native-webview and install it with npx expo install if needed.
+4. Write a new plan before implementation. Suggested plan scope:
+   - Add WebView dependency.
+   - Add sanitizer rule types.
+   - Add bundled first-pass rule files for Instagram, X, YouTube, and TikTok.
+   - Add Social screen site cards.
+   - Add in-app browser screen/shell.
+   - Inject CSS/JS rules into the WebView.
+   - Add tests around rule generation and Social screen navigation behavior.
+5. Keep native app blocking out of scope. This is Personal Edition and should sanitize only Stillpoint's own web surface.
 
 Roadmap from here
-- Finish this Focus UI polish slice first.
-- Next major plan after polish should be Sanitized Social Browser:
+- Plan 4: Sanitized Social Browser
   - Add react-native-webview.
-  - Add Social tab site cards.
-  - Add bundled sanitizer rule files for Instagram/X/YouTube/TikTok.
-  - Keep it inside Stillpoint's own web surface.
-- After browser: Friction Layer.
+  - Build Social tab site cards for Instagram, X, YouTube, TikTok.
+  - Add sanitizer rule model and bundled selector/JS rule files.
+  - Add browser shell with rule injection.
+  - Persist web sessions/cookies as supported.
+- Plan 5: Friction Layer
   - Hard/soft/intention/cheat gating before opening sanitized sites during active focus sessions.
-  - Persist intentions and cheat pass usage.
-- After friction: Stats and Insights.
-  - Session history, weekly totals, streak visuals, intentions journal.
-- After stats: Onboarding and Shortcuts.
-  - Personal Edition sideload limitations, Shortcuts automation walkthrough, deep links.
-- After onboarding: CI/dev-build pipeline.
-  - EAS/dev build setup and real-device validation for native modules.
+  - Persist intention entries and cheat-pass usage.
+  - Make friction mode from active preset matter in the browser flow.
+- Plan 6: Stats and Insights
+  - Session history.
+  - Weekly totals.
+  - Streak visuals.
+  - Intentions journal preview and detail view.
+- Plan 7: Onboarding and Shortcuts
+  - Personal Edition sideload limitations.
+  - Shortcuts automation walkthrough.
+  - stillpoint:// deep-link strategy.
+- Plan 8: CI/dev-build pipeline
+  - EAS/dev build setup.
+  - Real device validation for @op-engineering/op-sqlite and react-native-mmkv.
 
 Notes / risks
-- Home currently has starter presets and session controls, but no real preset editor yet. That is the main reason this polish branch exists.
-- The session store exposes tick(), but before this branch there is no production interval loop that calls it every second.
-- The app uses native modules (@op-engineering/op-sqlite and react-native-mmkv), so export/tests are good but real runtime validation still needs a dev build.
-- No new package should be needed for this slice. Use React Native TextInput and existing stores.
+- The live ticking interval is currently in HomeScreen. If future screens also need ticking, consider moving interval ownership to a higher-level session controller component.
+- Home reads SQLite-backed stats directly during render. This is acceptable for the small local queries currently used, but a future Stats plan may introduce a dedicated stats repository/store if the queries grow.
+- This app still needs a real dev build/device smoke test because it uses native modules.
+- Sanitized browser should stay inside Stillpoint's own WebView. Do not attempt to modify native Instagram/TikTok/X/YouTube apps.
