@@ -1,106 +1,90 @@
 Stillpoint handoff from Codex to Claude
 Date: 2026-05-20
-Current branch: master
+Current branch when written: codex/focus-ui
 
 Read first
 - C:\Users\wesle\Documents\chathistory.txt
 - docs/superpowers/specs/2026-05-19-stillpoint-design.md
 - docs/superpowers/plans/2026-05-19-foundation.md
 - docs/superpowers/plans/2026-05-20-focus-engine-core.md
+- docs/superpowers/plans/2026-05-20-focus-ui.md
 
 Session summary
-- Claude had already finished the Foundation phase, merged it to master, wrote Plan 2 (Focus Engine Core), branched to focus-engine-core, and implemented Plan 2 Tasks 1-6 before hitting the usage limit.
-- Codex inspected the actual repository state instead of trusting the pasted summary. The repo was on focus-engine-core with Tasks 1-6 committed and a clean worktree.
-- Codex continued Plan 2 at Task 7 using TDD:
-  1. Rewrote src/state/__tests__/sessionStore.test.ts with the planned timer, persistence, completion, cancellation, and streak tests.
-  2. Ran the test and confirmed the expected failure: the skeleton store had no remainingSeconds/status/sessionId/tick/cancelSession/dismissComplete behavior.
-  3. Replaced src/state/sessionStore.ts with the real focus-session runtime store.
-  4. Re-ran the focused test and got 9/9 passing.
-  5. Ran npx tsc --noEmit successfully.
-  6. Committed the task.
-- Codex then ran Plan 2 Task 8 final verification, merged focus-engine-core into master by fast-forward, verified again on master, and deleted the feature branch.
-- This file was then updated so the next Claude/Codex session has a current handoff, not the old Foundation-only handoff.
+- User asked Codex to work on Plan 3 and explicitly said to update this handoff if usage/context got close.
+- Codex verified the repo was clean on master, read the existing design/handoff, and checked the Expo SDK 54 docs plus the Expo SDK 54 react-native-svg page.
+- Decision: Plan 3 was scoped as Focus UI Core only. It does not include schedules, notifications, Skia, sanitized browser, or friction modals. The orb uses the already-installed react-native-svg package to avoid adding a new native dependency in this UI slice.
+- Codex created branch codex/focus-ui and wrote/committed docs/superpowers/plans/2026-05-20-focus-ui.md.
+- Codex implemented the plan with TDD:
+  1. Added time-formatting helpers and tests.
+  2. Added the FocusOrb SVG progress/timer component and tests.
+  3. Added the PresetTile component and tests.
+  4. Replaced the placeholder Home screen with a real focus dashboard and tests.
+  5. Ran full verification.
+- Home is now a usable first screen: the user can create starter presets, tap a preset to start a session, see the orb/timer, cancel a running session, and dismiss a completed session.
 
 Current state
-- Branch: master
-- Worktree: clean at the time this handoff was written, except this handoff file itself is being committed after update.
-- Foundation: complete and merged.
-- Plan 2 Focus Engine Core: complete and merged.
-- focus-engine-core branch: deleted after successful fast-forward merge.
+- Branch: codex/focus-ui
+- Base branch: master
+- Worktree status at handoff update time: this file is modified and should be committed after writing.
+- Foundation: complete and merged to master.
+- Plan 2 Focus Engine Core: complete and merged to master.
+- Plan 3 Focus UI Core: implemented and verified on codex/focus-ui.
 
-Commits relevant to Plan 2
-- 702934b Add Focus Engine Core implementation plan (Plan 2)
-- 34ff1eb test: back op-sqlite mock with in-memory better-sqlite3
-- e9664c5 feat: add date-key helpers
-- 30d0324 feat: add session repository
-- a43e794 fix: make the DB facade synchronous via op-sqlite executeSync
-- 405b815 feat: add preset repository
-- 0c15b54 feat: add streak repository
-- dcc2f37 feat: wire preset store to preset repository
-- 4c6f3a2 feat: add timer, persistence, and streak tracking to session store
+Commits created in this Plan 3 session
+- cdd1f8a docs: add Focus UI implementation plan
+- cef2794 feat: add focus UI time formatting helpers
+- ce9e007 feat: add focus orb progress component
+- b2892ab feat: add preset tile component
+- 5fb27b7 feat: wire home screen to focus engine
 
-Verification results
-- On focus-engine-core before merge:
-  - npx jest: passed, 14 suites, 72 tests
-  - npx tsc --noEmit: passed
-  - npx expo export --platform ios --output-dir ./.tmp-export: passed, temp export removed
-  - npx expo-doctor: passed, 17/17 checks
-- On master after merge:
-  - npx jest: passed, 14 suites, 72 tests
-  - npx tsc --noEmit: passed
-  - npx expo export --platform ios --output-dir ./.tmp-export: passed, temp export removed
-  - npx expo-doctor: passed, 17/17 checks
+Files added or changed for Plan 3
+- docs/superpowers/plans/2026-05-20-focus-ui.md
+- src/ui/time.ts
+- src/ui/__tests__/time.test.ts
+- src/components/FocusOrb.tsx
+- src/components/__tests__/FocusOrb.test.tsx
+- src/components/PresetTile.tsx
+- src/components/__tests__/PresetTile.test.tsx
+- src/screens/HomeScreen.tsx
+- src/screens/__tests__/HomeScreen.test.tsx
 
-What Plan 2 now provides
-- A better-sqlite3-backed Jest mock for @op-engineering/op-sqlite, so repository tests exercise real SQL semantics in memory.
-- Local date-key helpers in src/lib/dates.ts.
-- SQLite repositories:
-  - src/data/sessionRepository.ts
-  - src/data/presetRepository.ts
-  - src/data/streakRepository.ts
-- A synchronous app database facade in src/data/database.ts using op-sqlite executeSync.
-- Repository-backed preset store in src/state/presetStore.ts.
-- Real session runtime store in src/state/sessionStore.ts:
-  - startSession persists an incomplete sessions row.
-  - activeSession includes sessionId, remainingSeconds, and status.
-  - tick decrements remainingSeconds.
-  - ticking to zero completes the session row and records today's streak day.
-  - cancelSession clears runtime state without completing the row.
-  - dismissComplete clears a completed runtime session.
+Verification results on codex/focus-ui
+- npx jest: passed, 18 suites, 82 tests
+- npx tsc --noEmit: passed
+- npx expo export --platform ios --output-dir ./.tmp-export: passed, temp export removed
+- npx expo-doctor: passed, 17/17 checks
 
 Step-by-step of the in-flight task
-- No coding task is currently in flight. Plan 2 is done.
-- If continuing immediately, do this next:
-  1. Confirm git status is clean on master.
-  2. Start Plan 3 by invoking the writing-plans skill.
-  3. Scope Plan 3 as Focus UI: visible Home experience on top of the tested engine.
-  4. Keep schedules and notifications either at the end of Plan 3 or split into a separate Plan 4 if the plan grows too large.
-  5. Before writing Plan 3 code, read Expo SDK 54 docs for any relevant packages used by the UI (for example Skia, notifications, or any new Expo module).
+- No coding task is currently in flight. Plan 3 Focus UI Core is implemented and verified.
+- If continuing from here:
+  1. Commit this updated CODEX_TO_CLAUDE_HANDOFF.txt.
+  2. Merge codex/focus-ui into master if the user wants the same local-merge workflow used for the previous phases.
+  3. Re-run at least npx jest on master after merge; ideally also tsc/export/expo-doctor if time allows.
+  4. Delete codex/focus-ui after a clean merge.
+  5. Start the next plan.
 
 Roadmap from here
-- Plan 3: Focus UI
-  - Real Home screen connected to usePresetStore/useSessionStore.
-  - Session-in-progress UI.
-  - Calm focus orb/progress visualization.
-  - Preset list/create/edit/delete UI over the repository-backed preset store.
-  - Optional schedule UI if it stays small; otherwise split schedules out.
-- Plan 4: Sanitized Social Browser
-  - In-app web experience for supported social sites.
-  - Site presets and rule definitions for hiding distracting surfaces.
-  - Start with web-only/app-contained behavior; do not attempt native app UI modification.
-- Plan 5: Friction Layer
-  - Soft/hard/intention/cheat friction behavior.
-  - Bypass countdowns, intention prompts, and cheat-pass accounting.
-- Plan 6: Stats and Insights
-  - Session history, streak display, weekly totals, distraction/intentional-use metrics.
-- Plan 7: Onboarding, permissions, and product readiness
-  - Explain iOS Screen Time/Family Controls limitations and entitlement needs.
-  - Prepare onboarding flows and settings.
-- Plan 8: CI/dev-build pipeline
-  - EAS/dev build setup for native modules.
-  - Real device validation path for op-sqlite and react-native-mmkv.
+- Plan 4: Focus UI Polish and Preset Editing, or fold this into the next small UI slice:
+  - Add real preset create/edit forms instead of only starter presets.
+  - Show today's focused minutes and current/longest streak on Home.
+  - Improve completed-session feedback and visual polish.
+  - Consider adding a real ticking interval in the UI layer instead of only manual store ticks.
+- Plan 5: Sanitized Social Browser
+  - Add react-native-webview with supported site tiles.
+  - Bundle first-pass CSS/JS sanitizer rule files for Instagram/X/YouTube/TikTok.
+  - Keep this inside Stillpoint's own web surface; do not attempt native app UI modification.
+- Plan 6: Friction Layer
+  - Hard/soft/intention/cheat gating before opening sanitized sites during focus sessions.
+  - Intention persistence and cheat-pass accounting.
+- Plan 7: Stats and Insights
+  - Session history, weekly totals, streak cards, and intentions journal preview.
+- Plan 8: Onboarding and Shortcuts
+  - Personal Edition onboarding, sideload limitations, Shortcuts automation walkthrough, and URL/deep-link strategy.
+- Plan 9: CI/dev-build pipeline
+  - EAS/dev build setup and real-device validation for native modules.
 
 Notes / risks
-- The app uses native modules (@op-engineering/op-sqlite and react-native-mmkv). Unit tests and export pass, but a real runtime smoke test needs a dev build, not plain Expo Go.
-- iOS Screen Time / Family Controls still requires Apple entitlement approval in later phases.
-- Sanitized social browsing should remain inside the app's own web surface; modifying native Instagram/TikTok/etc. apps is not viable on iOS and risky on Android.
+- The Home dashboard currently requires user action to create starter presets. A later preset editor should replace this starter-only path.
+- The session store has a tick() action, but no production interval loop yet. Home can start sessions and display state; a later UI polish task should drive tick() every second while active.
+- The app still needs a real dev build/device smoke test because it uses @op-engineering/op-sqlite and react-native-mmkv.
+- Current UI intentionally uses react-native-svg instead of Skia to keep Plan 3 small and stable.
