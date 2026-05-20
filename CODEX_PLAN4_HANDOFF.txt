@@ -1,62 +1,86 @@
 Stillpoint Plan 4 handoff from Codex to Claude/fresh Codex
 Date: 2026-05-20
-Current branch: sanitized-social-browser
+Current branch when written: sanitized-social-browser
 
 READ FIRST
 - docs/superpowers/plans/2026-05-20-sanitized-social-browser.md
 - CLAUDE_TO_CODEX_HANDOFF.txt
 - docs/superpowers/specs/2026-05-19-stillpoint-design.md section 6.3
-- AGENTS.md instruction: Expo code should follow the v54 docs. Codex checked the Expo SDK 54 WebView docs before starting.
+- AGENTS.md instruction: Expo code should follow the v54 docs. Codex checked Expo SDK 54 WebView docs before coding.
+- .codex/skills/ui-ux-pro-max/SKILL.md is now installed project-locally; restart Codex to auto-discover it in future sessions.
 
 SESSION SUMMARY
 - User asked Codex to execute Plan 4: Sanitized Social Browser.
-- Codex used the Superpowers execution/TDD/verification workflow.
-- Created feature branch `sanitized-social-browser` from master.
-- Task 1 completed: installed `react-native-webview` via `npx expo install react-native-webview`, added the Jest WebView mock, verified `npx jest` and `npx tsc --noEmit`, then committed.
-- Task 2 completed: wrote the failing sanitizer rule registry test, added `src/sanitizer/types.ts` and `src/sanitizer/rules.ts`, verified the rule test passes, then committed.
-- Task 3 completed: wrote the failing injection builder test, added `src/sanitizer/injection.ts`, adjusted the implementation so generated scripts keep selectors readable while still escaped for JavaScript string literals, verified the injection test passes, then committed.
+- Codex used Superpowers execution/TDD/verification workflows and checked Expo SDK 54 WebView docs first.
+- Created feature branch `sanitized-social-browser` from `master`.
+- Task 1 completed: installed `react-native-webview` via `npx expo install react-native-webview`, added Jest WebView mock, verified the existing suite and TypeScript, then committed.
+- Task 2 completed: wrote failing sanitizer rule-registry test, added `SiteKey`, `SanitizerRule`, `SITE_KEYS`, `ALL_RULES`, and `getRule`, verified tests, then committed.
+- Task 3 completed: wrote failing injection-builder test, added `buildInjection`, fixed selector escaping/readability mismatch discovered by the test, verified tests, then committed.
+- Task 4 completed: wrote failing SocialScreen test, replaced placeholder with a supported-site card list from `ALL_RULES`, noted the expected temporary `tabs.ts` type error, then committed.
+- Task 5 completed: wrote failing BrowserScreen test, added WebView shell using sanitizer rules, `sharedCookiesEnabled`, and `domStorageEnabled`, verified tests, then committed.
+- Task 6 completed: wrote failing SocialStack test, added typed native stack from Social cards to BrowserScreen, updated `tabs.ts`, verified SocialStack, navigator tests, and TypeScript, then committed.
+- User interrupted before final verification to request installing and using UI UX Pro Max. Codex installed it project-locally with `npx uipro-cli init --ai codex`, used its React Native/mobile/accessibility guidance, and added a test-backed Social card polish pass:
+  - Cards now expose `accessibilityRole="button"`, useful labels/hints, minimum touch height, and pressed feedback.
+  - Python cache files generated while using the skill were removed and ignored.
+- Task 7 completed: full verification passed.
 
 COMMITS CREATED THIS SESSION
 - 26d56b8 chore: add react-native-webview and its Jest mock
 - 46ebd2f feat: add sanitizer types and per-site rule registry
 - ab522b5 feat: add sanitizer injection builder
+- 0157c4e feat: add Social screen site cards grid
+- b6546c4 feat: add sanitized WebView browser screen
+- 8d2c52c feat: wire Social tab to a stack with the sanitized browser
+- 916c6e8 feat: improve Social cards accessibility and press states
+- 9a028c6 chore: install UI UX Pro Max skill for Codex
+- 404e963 chore: ignore Python cache artifacts
 
-VERIFICATION SO FAR
-- After Task 1:
+VERIFICATION RESULTS
+- Task 1:
   - `npx jest`: 18 suites / 88 tests passed.
   - `npx tsc --noEmit`: exit 0.
-- Task 2:
+- Task 2 red/green:
   - Red: `npx jest src/sanitizer/__tests__/rules.test.ts` failed because `../rules` did not exist.
   - Green: same command passed, 5 tests.
-- Task 3:
+- Task 3 red/green:
   - Red: `npx jest src/sanitizer/__tests__/injection.test.ts` failed because `../injection` did not exist.
-  - First green attempt exposed selector escaping mismatch; fixed implementation.
-  - Green: same command passed, 5 tests.
+  - Green after escaping fix: same command passed, 5 tests.
+- Task 4 red/green:
+  - Red: `npx jest src/screens/__tests__/SocialScreen.test.tsx` failed because the placeholder did not render supported-site cards.
+  - Green: same command passed, 3 tests.
+  - `npx tsc --noEmit` showed the expected temporary `tabs.ts` prop mismatch until Task 6.
+- Task 5 red/green:
+  - Red: `npx jest src/screens/__tests__/BrowserScreen.test.tsx` failed because `BrowserScreen` did not exist.
+  - Green: same command passed, 4 tests.
+- Task 6 red/green:
+  - Red: `npx jest src/nav/__tests__/SocialStack.test.tsx` failed because `SocialStack` did not exist.
+  - Green: same command passed, 2 tests.
+  - `npx tsc --noEmit`: exit 0.
+  - `npx jest src/nav`: 2 suites / 5 tests passed.
+- UI/UX Pro Max polish red/green:
+  - Red: SocialScreen accessibility test could not find a named button.
+  - Green: `npx jest src/screens/__tests__/SocialScreen.test.tsx` passed, 4 tests.
+- Final Plan 4 verification:
+  - `npx jest`: 23 suites / 108 tests passed.
+  - `npx tsc --noEmit`: exit 0.
+  - `npx expo export --platform ios --output-dir ./.tmp-export`: exit 0; `.tmp-export` removed afterward.
+  - `npx expo-doctor`: 17/17 checks passed.
 
-IN-FLIGHT TASK
-Next task is Task 4: Social screen site cards grid.
-Step-by-step:
-1. Add `src/screens/__tests__/SocialScreen.test.tsx` exactly as Plan 4 specifies.
-2. Run `npx jest src/screens/__tests__/SocialScreen.test.tsx`; expected red because current SocialScreen is still the placeholder and does not accept `onOpenSite`.
-3. Rewrite `src/screens/SocialScreen.tsx` to render a SafeAreaView/ScrollView card list from `ALL_RULES`, with an `onOpenSite(siteKey)` prop and `site-card-${key}` testIDs.
-4. Run the SocialScreen test; expected 3 tests pass.
-5. Run `npx tsc --noEmit`; a temporary `tabs.ts` prop mismatch is expected until Task 6.
-6. Commit Task 4.
+CURRENT STATE
+- Branch: `sanitized-social-browser`.
+- Plan 4 implementation is complete and verified on the feature branch.
+- Worktree has only unrelated untracked `CC-Session-Logs/` from prior context compression.
+- Next action: finish the development branch. Recommended for this solo local project: merge `sanitized-social-browser` into `master`, re-run at least `npx jest` and `npx tsc --noEmit` on master, then delete the feature branch.
 
-REMAINING PLAN 4 ROADMAP
-- T4 Social screen cards grid.
-- T5 BrowserScreen WebView shell with `sharedCookiesEnabled` and `domStorageEnabled`.
-- T6 Social native stack navigation and update `tabs.ts`.
-- T7 full verification: `npx jest`, `npx tsc --noEmit`, `npx expo export --platform ios --output-dir ./.tmp-export`, remove export dir, `npx expo-doctor`.
-- Finish branch: merge fast-forward to master if fully verified, re-verify on master, delete branch.
+ROADMAP FROM HERE
+- Plan 4: Sanitized Social Browser -- implemented and verified; needs merge if not already merged.
+- Plan 5: Friction Layer -- gate opening a sanitized site behind the active focus session's friction mode (hard / soft / intention / cheat); persist intention entries and cheat-pass usage.
+- Plan 6: Stats & Insights -- session history, weekly totals, streak visuals, intentions journal.
+- Plan 7: Onboarding & Shortcuts -- Personal Edition sideload limits, Shortcuts automation walkthrough, stillpoint:// deep links, App Intents.
+- Plan 8: CI / dev-build pipeline -- GitHub Actions macOS runner producing an unsigned .ipa for Sideloadly; real-device smoke test for op-sqlite + react-native-mmkv + react-native-webview.
 
-PROJECT ROADMAP AFTER PLAN 4
-- Plan 5: Friction Layer.
-- Plan 6: Stats & Insights.
-- Plan 7: Onboarding & Shortcuts.
-- Plan 8: CI/dev-build pipeline.
-
-NOTES
-- `CC-Session-Logs/` is an untracked session-compression folder from a prior context compression. It is unrelated to Plan 4 and has been left untouched.
-- The sanitizer rules are intentionally first-pass and will need maintenance as social sites change markup.
-- Plan 4 only sanitizes Stillpoint's own WebView; it does not and cannot modify native social apps.
+NOTES / RISKS
+- Sanitizer selectors are first-pass and will need maintenance as Instagram/X/YouTube/TikTok web markup changes.
+- Sanitized browsing affects only Stillpoint's own WebView. It does not and cannot modify native social apps.
+- The UI copy stays honest: it says sanitize/calm, not OS-level blocking.
+- `react-native-webview` is supported by Expo SDK 54 and was installed with `expo install`.
