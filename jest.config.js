@@ -1,0 +1,8 @@
+module.exports = {
+  preset: 'jest-expo',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  transformIgnorePatterns: [
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@react-navigation/.*|react-native-svg|lucide-react-native))',
+  ],
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/__tests__/**'],
+};
