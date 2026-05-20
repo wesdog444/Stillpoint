@@ -36,18 +36,27 @@ Session summary so far
   6. Re-ran HomeScreen and RootNavigator focused tests successfully.
   7. Ran npx tsc --noEmit successfully.
   8. Committed 1608280 feat: add live home stats and ticking.
+- Codex completed Task 3:
+  1. Added failing HomeScreen tests for New preset, editing Reading into Night Read, and deleting Wind Down.
+  2. Confirmed the tests failed because Home had no New preset/Edit/Delete preset controls.
+  3. Added inline editor state to HomeScreen with TextInput fields for preset name and duration.
+  4. Added friction-mode selector buttons for Hard, Soft, Intention, and Cheat.
+  5. Wired Save preset to createPreset/editPreset and Delete preset to removePreset.
+  6. Re-ran npx jest src/screens/__tests__/HomeScreen.test.tsx successfully.
+  7. Ran npx tsc --noEmit successfully.
+  8. Committed 594688a feat: add inline preset editor.
 - Scope for this slice:
   1. Add a completed-minutes query to sessionRepository. DONE.
   2. Make Home tick active sessions every second and show today/streak stats. DONE.
-  3. Add a minimal inline preset editor to create/edit/delete presets on Home. NEXT.
-  4. Run full verification and merge when clean.
+  3. Add a minimal inline preset editor to create/edit/delete presets on Home. DONE.
+  4. Run full verification and merge when clean. NEXT.
 
 Current state
 - Branch: codex/focus-ui-polish
 - Base branch: master
 - Worktree currently has:
   - modified CODEX_TO_CLAUDE_HANDOFF.txt for this progress checkpoint
-- Latest completed code commit: 1608280 feat: add live home stats and ticking.
+- Latest completed code commit: 594688a feat: add inline preset editor.
 
 Step-by-step of the in-flight task
 1. Commit this updated handoff checkpoint if not already committed:
@@ -56,11 +65,9 @@ Step-by-step of the in-flight task
 2. Commit this updated handoff checkpoint if not already committed:
    - git add CODEX_TO_CLAUDE_HANDOFF.txt
    - git commit -m "docs: checkpoint focus UI polish handoff after stats"
-3. Task 3: inline preset editor.
-   - Add failing HomeScreen tests for New preset, Edit, Save preset, Delete preset.
-   - Implement TextInput-based editor in HomeScreen with local draft state.
-   - Re-run HomeScreen tests.
-   - Commit "feat: add inline preset editor".
+3. Commit this updated handoff checkpoint if not already committed:
+   - git add CODEX_TO_CLAUDE_HANDOFF.txt
+   - git commit -m "docs: checkpoint focus UI polish handoff after editor"
 4. Task 4: verification and merge.
    - Run npx jest.
    - Run npx tsc --noEmit.
