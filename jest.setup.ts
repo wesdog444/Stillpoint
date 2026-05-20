@@ -85,3 +85,12 @@ jest.mock('@op-engineering/op-sqlite', () => {
     },
   };
 });
+
+// --- react-native-webview mock: a plain View carrying the props as testIDs ---
+jest.mock('react-native-webview', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const WebView = (props: Record<string, unknown>) =>
+    React.createElement(View, { testID: 'mock-webview', ...props });
+  return { WebView, default: WebView };
+});
