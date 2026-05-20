@@ -1,6 +1,6 @@
 Stillpoint handoff from Codex to Claude
 Date: 2026-05-20
-Current branch when written: codex/focus-ui
+Current branch when written: codex/focus-ui-polish
 
 Read first
 - C:\Users\wesle\Documents\chathistory.txt
@@ -8,83 +8,82 @@ Read first
 - docs/superpowers/plans/2026-05-19-foundation.md
 - docs/superpowers/plans/2026-05-20-focus-engine-core.md
 - docs/superpowers/plans/2026-05-20-focus-ui.md
+- docs/superpowers/plans/2026-05-20-focus-ui-polish.md
 
-Session summary
-- User asked Codex to work on Plan 3 and explicitly said to update this handoff if usage/context got close.
-- Codex verified the repo was clean on master, read the existing design/handoff, and checked the Expo SDK 54 docs plus the Expo SDK 54 react-native-svg page.
-- Decision: Plan 3 was scoped as Focus UI Core only. It does not include schedules, notifications, Skia, sanitized browser, or friction modals. The orb uses the already-installed react-native-svg package to avoid adding a new native dependency in this UI slice.
-- Codex created branch codex/focus-ui and wrote/committed docs/superpowers/plans/2026-05-20-focus-ui.md.
-- Codex implemented the plan with TDD:
-  1. Added time-formatting helpers and tests.
-  2. Added the FocusOrb SVG progress/timer component and tests.
-  3. Added the PresetTile component and tests.
-  4. Replaced the placeholder Home screen with a real focus dashboard and tests.
-  5. Ran full verification.
-- Home is now a usable first screen: the user can create starter presets, tap a preset to start a session, see the orb/timer, cancel a running session, and dismiss a completed session.
+Session summary so far
+- User asked Codex to work on the next Focus UI polish slice and warned that usage/context may be near the limit. They explicitly requested frequent handoff updates and said the handoff can be extra long.
+- Codex inspected the repo state on master. Previous phases are already merged:
+  - Foundation complete.
+  - Focus Engine Core complete.
+  - Focus UI Core complete, including Home dashboard, starter presets, FocusOrb, PresetTile, and tests.
+- Codex used the relevant skills for planning/TDD/UI work and re-checked the Expo SDK 54 docs before coding.
+- Codex created branch codex/focus-ui-polish.
+- Codex wrote docs/superpowers/plans/2026-05-20-focus-ui-polish.md.
+- Scope for this slice:
+  1. Add a completed-minutes query to sessionRepository.
+  2. Make Home tick active sessions every second and show today/streak stats.
+  3. Add a minimal inline preset editor to create/edit/delete presets on Home.
+  4. Run full verification and merge when clean.
+- No production code for this polish slice has been written yet beyond the plan and this handoff update.
 
 Current state
-- Branch: codex/focus-ui
+- Branch: codex/focus-ui-polish
 - Base branch: master
-- Worktree status at handoff update time: this file is modified and should be committed after writing.
-- Foundation: complete and merged to master.
-- Plan 2 Focus Engine Core: complete and merged to master.
-- Plan 3 Focus UI Core: implemented and verified on codex/focus-ui.
-
-Commits created in this Plan 3 session
-- cdd1f8a docs: add Focus UI implementation plan
-- cef2794 feat: add focus UI time formatting helpers
-- ce9e007 feat: add focus orb progress component
-- b2892ab feat: add preset tile component
-- 5fb27b7 feat: wire home screen to focus engine
-
-Files added or changed for Plan 3
-- docs/superpowers/plans/2026-05-20-focus-ui.md
-- src/ui/time.ts
-- src/ui/__tests__/time.test.ts
-- src/components/FocusOrb.tsx
-- src/components/__tests__/FocusOrb.test.tsx
-- src/components/PresetTile.tsx
-- src/components/__tests__/PresetTile.test.tsx
-- src/screens/HomeScreen.tsx
-- src/screens/__tests__/HomeScreen.test.tsx
-
-Verification results on codex/focus-ui
-- npx jest: passed, 18 suites, 82 tests
-- npx tsc --noEmit: passed
-- npx expo export --platform ios --output-dir ./.tmp-export: passed, temp export removed
-- npx expo-doctor: passed, 17/17 checks
+- Worktree currently has:
+  - new docs/superpowers/plans/2026-05-20-focus-ui-polish.md
+  - modified CODEX_TO_CLAUDE_HANDOFF.txt
+- These should be committed before continuing if not already committed.
 
 Step-by-step of the in-flight task
-- No coding task is currently in flight. Plan 3 Focus UI Core is implemented and verified.
-- If continuing from here:
-  1. Commit this updated CODEX_TO_CLAUDE_HANDOFF.txt.
-  2. Merge codex/focus-ui into master if the user wants the same local-merge workflow used for the previous phases.
-  3. Re-run at least npx jest on master after merge; ideally also tsc/export/expo-doctor if time allows.
-  4. Delete codex/focus-ui after a clean merge.
-  5. Start the next plan.
+1. Commit the plan and this handoff update:
+   - git add docs/superpowers/plans/2026-05-20-focus-ui-polish.md CODEX_TO_CLAUDE_HANDOFF.txt
+   - git commit -m "docs: add Focus UI polish plan and handoff"
+2. Task 1: completed focus minutes helper.
+   - Add failing test in src/data/__tests__/sessionRepository.test.ts.
+   - Run npx jest src/data/__tests__/sessionRepository.test.ts and confirm it fails because getCompletedFocusMinutesForDay is missing.
+   - Add getCompletedFocusMinutesForDay(dayKey: string): number to src/data/sessionRepository.ts.
+   - Re-run focused test.
+   - Commit "feat: add completed focus minutes query".
+3. Task 2: Home stats and live ticking.
+   - Add failing HomeScreen tests for interval ticking and stats after completion.
+   - Implement useEffect interval while activeSession.status is running.
+   - Add stat row using getCompletedFocusMinutesForDay(todayKey()), getCurrentStreak(), and getLongestStreak().
+   - Re-run HomeScreen tests.
+   - Commit "feat: add live home stats and ticking".
+4. Task 3: inline preset editor.
+   - Add failing HomeScreen tests for New preset, Edit, Save preset, Delete preset.
+   - Implement TextInput-based editor in HomeScreen with local draft state.
+   - Re-run HomeScreen tests.
+   - Commit "feat: add inline preset editor".
+5. Task 4: verification and merge.
+   - Run npx jest.
+   - Run npx tsc --noEmit.
+   - Run npx expo export --platform ios --output-dir ./.tmp-export and delete ./.tmp-export.
+   - Run npx expo-doctor.
+   - Update this handoff with exact commits/results.
+   - Merge codex/focus-ui-polish to master by fast-forward if clean.
+   - Re-run at least npx jest on master, preferably all checks.
+   - Delete codex/focus-ui-polish after merge.
 
 Roadmap from here
-- Plan 4: Focus UI Polish and Preset Editing, or fold this into the next small UI slice:
-  - Add real preset create/edit forms instead of only starter presets.
-  - Show today's focused minutes and current/longest streak on Home.
-  - Improve completed-session feedback and visual polish.
-  - Consider adding a real ticking interval in the UI layer instead of only manual store ticks.
-- Plan 5: Sanitized Social Browser
-  - Add react-native-webview with supported site tiles.
-  - Bundle first-pass CSS/JS sanitizer rule files for Instagram/X/YouTube/TikTok.
-  - Keep this inside Stillpoint's own web surface; do not attempt native app UI modification.
-- Plan 6: Friction Layer
-  - Hard/soft/intention/cheat gating before opening sanitized sites during focus sessions.
-  - Intention persistence and cheat-pass accounting.
-- Plan 7: Stats and Insights
-  - Session history, weekly totals, streak cards, and intentions journal preview.
-- Plan 8: Onboarding and Shortcuts
-  - Personal Edition onboarding, sideload limitations, Shortcuts automation walkthrough, and URL/deep-link strategy.
-- Plan 9: CI/dev-build pipeline
+- Finish this Focus UI polish slice first.
+- Next major plan after polish should be Sanitized Social Browser:
+  - Add react-native-webview.
+  - Add Social tab site cards.
+  - Add bundled sanitizer rule files for Instagram/X/YouTube/TikTok.
+  - Keep it inside Stillpoint's own web surface.
+- After browser: Friction Layer.
+  - Hard/soft/intention/cheat gating before opening sanitized sites during active focus sessions.
+  - Persist intentions and cheat pass usage.
+- After friction: Stats and Insights.
+  - Session history, weekly totals, streak visuals, intentions journal.
+- After stats: Onboarding and Shortcuts.
+  - Personal Edition sideload limitations, Shortcuts automation walkthrough, deep links.
+- After onboarding: CI/dev-build pipeline.
   - EAS/dev build setup and real-device validation for native modules.
 
 Notes / risks
-- The Home dashboard currently requires user action to create starter presets. A later preset editor should replace this starter-only path.
-- The session store has a tick() action, but no production interval loop yet. Home can start sessions and display state; a later UI polish task should drive tick() every second while active.
-- The app still needs a real dev build/device smoke test because it uses @op-engineering/op-sqlite and react-native-mmkv.
-- Current UI intentionally uses react-native-svg instead of Skia to keep Plan 3 small and stable.
+- Home currently has starter presets and session controls, but no real preset editor yet. That is the main reason this polish branch exists.
+- The session store exposes tick(), but before this branch there is no production interval loop that calls it every second.
+- The app uses native modules (@op-engineering/op-sqlite and react-native-mmkv), so export/tests are good but real runtime validation still needs a dev build.
+- No new package should be needed for this slice. Use React Native TextInput and existing stores.
