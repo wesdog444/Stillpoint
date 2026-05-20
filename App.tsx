@@ -1,20 +1,41 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
+import { fontAssets } from './src/theme/fonts';
+import { theme } from './src/theme/theme';
+import { initDatabase } from './src/data/database';
+import { RootNavigator } from './src/nav/RootNavigator';
 
 export default function App() {
+  const [fontsLoaded] = useFonts(fontAssets);
+  const [dbReady, setDbReady] = useState(false);
+
+  useEffect(() => {
+    initDatabase();
+    setDbReady(true);
+  }, []);
+
+  if (!fontsLoaded || !dbReady) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: theme.colors.bgDeep,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <ActivityIndicator color={theme.colors.purple400} />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <StatusBar style="light" />
+      <RootNavigator />
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
