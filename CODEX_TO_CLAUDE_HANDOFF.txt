@@ -1,0 +1,45 @@
+Stillpoint Foundation handoff from Codex to Claude
+Date: 2026-05-20
+Branch: foundation
+
+Context read
+- Read C:\Users\wesle\Documents\chathistory.txt before continuing.
+- Product direction from chat history: Stillpoint combines an Opal-style blocker with a Social Lite-style sanitized in-app web experience. The Foundation plan only builds the Expo shell, theme, local data layer, stores, and navigation.
+- Project instruction says to read Expo SDK 54 docs before coding. Confirmed SDK 54 uses React Native 0.81 and React 19.1, matching the installed project dependencies.
+
+Work completed by Codex
+- Finished Task 15: added the five placeholder tab screens:
+  - src/screens/HomeScreen.tsx
+  - src/screens/SocialScreen.tsx
+  - src/screens/BlocksScreen.tsx
+  - src/screens/StatsScreen.tsx
+  - src/screens/ProfileScreen.tsx
+- Finished Task 16: added the bottom tab navigator:
+  - src/nav/tabs.ts
+  - src/nav/RootNavigator.tsx
+  - src/nav/__tests__/RootNavigator.test.tsx
+- Finished Task 17: wired the app root and app config:
+  - App.tsx now loads bundled fonts, initializes the database, wraps the app in SafeAreaProvider, renders a light StatusBar, and mounts RootNavigator.
+  - app.json now has lowercase slug stillpoint, scheme stillpoint, dark UI style, iOS bundleIdentifier com.wesle.stillpoint, supportsTablet false, and the expo-font plugin.
+
+Commits created by Codex
+- 45f6547 feat: add five placeholder tab screens
+- 00e9e87 feat: add bottom tab navigator with five tabs
+- 8c437ab feat: wire App root with font loading, DB init, and navigation
+
+Verification run
+- npx tsc --noEmit: passed
+- npx jest: passed, 10 suites and 42 tests
+- npx expo export --platform ios --output-dir %TEMP%\stillpoint-export: passed, bundle exported and temp output cleaned up
+
+Foundation status
+- All planned Foundation tasks T1 through T17 are now implemented and committed on branch foundation.
+- The app graph bundles successfully.
+- The source tree now includes theme, data, state, components, screens, and nav.
+
+Still needs to be done or polished
+- Run on a real iOS/Android device or simulator in a proper native build. This project uses native modules such as @op-engineering/op-sqlite and react-native-mmkv, so Expo Go may not be enough for full runtime validation.
+- Run expo doctor / dependency validation before the next phase if you want dependency hygiene checked beyond the current passing tests and export.
+- Decide whether to commit or ignore the pre-existing untracked files .claude/ and CLAUDE.md. Codex did not touch them except reading CLAUDE.md earlier.
+- Next product phase should start from the Foundation plan done criteria and move into the focus engine: orb/timer, focus session behavior, preset CRUD, scheduling, and later sanitized webview/social app rules.
+- App Store feasibility remains important for later phases: iOS Screen Time / Family Controls requires Apple entitlement approval, and sanitized social webviews need careful policy framing.
