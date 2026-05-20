@@ -74,7 +74,7 @@ jest.mock('@op-engineering/op-sqlite', () => {
   };
 
   return {
-    open: jest.fn(() => ({ execute, close: () => undefined })),
+    open: jest.fn(() => ({ executeSync: execute, close: () => undefined })),
     __executed: executed,
     __resetMock: () => {
       executed.length = 0;
