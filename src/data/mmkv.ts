@@ -1,6 +1,6 @@
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV } from 'react-native-mmkv';
 
-const storage = new MMKV();
+const storage = createMMKV();
 
 /** Stable key names for everything stored in MMKV. */
 export const KV_KEYS = {

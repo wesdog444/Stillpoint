@@ -2,7 +2,7 @@ import '@testing-library/jest-native/extend-expect';
 
 // --- react-native-mmkv mock: in-memory key-value store ---
 jest.mock('react-native-mmkv', () => {
-  class MMKV {
+  class MMKVInstance {
     private store = new Map<string, string | number | boolean>();
     set(key: string, value: string | number | boolean) {
       this.store.set(key, value);
@@ -29,7 +29,7 @@ jest.mock('react-native-mmkv', () => {
       this.store.clear();
     }
   }
-  return { MMKV };
+  return { createMMKV: () => new MMKVInstance() };
 });
 
 // --- op-sqlite mock: records executed SQL, returns empty rowsets ---
