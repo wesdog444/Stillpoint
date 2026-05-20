@@ -1,5 +1,6 @@
 import { colors } from '../colors';
 import { spacing, radius } from '../spacing';
+import { typography, fontFamily } from '../typography';
 
 describe('colors', () => {
   it('exposes the Calm Wellness purple system color', () => {
@@ -26,5 +27,24 @@ describe('spacing', () => {
   });
   it('exposes a card radius', () => {
     expect(radius.card).toBe(14);
+  });
+});
+
+describe('typography', () => {
+  it('maps the display family to Fraunces', () => {
+    expect(fontFamily.display).toBe('Fraunces');
+    expect(fontFamily.displayLight).toBe('Fraunces-Light');
+  });
+  it('maps the body family to Raleway', () => {
+    expect(fontFamily.body).toBe('Raleway');
+    expect(fontFamily.bodyMedium).toBe('Raleway-Medium');
+  });
+  it('exposes a hero number text style using the display font', () => {
+    expect(typography.heroNumber.fontFamily).toBe('Fraunces-Light');
+    expect(typography.heroNumber.fontSize).toBe(64);
+  });
+  it('exposes a label style using the body font', () => {
+    expect(typography.label.fontFamily).toBe('Raleway-Medium');
+    expect(typography.label.letterSpacing).toBeGreaterThan(0);
   });
 });
