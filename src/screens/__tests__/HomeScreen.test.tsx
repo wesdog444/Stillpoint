@@ -81,4 +81,38 @@ describe('HomeScreen', () => {
     expect(screen.getByText('1 day streak')).toBeTruthy();
     expect(screen.getByText('1 longest')).toBeTruthy();
   });
+
+  it('creates a preset from the inline editor', () => {
+    render(<HomeScreen />);
+    fireEvent.press(screen.getByText('New preset'));
+    fireEvent.changeText(screen.getByPlaceholderText('Preset name'), 'Study Sprint');
+    fireEvent.changeText(screen.getByPlaceholderText('Duration minutes'), '45');
+    fireEvent.press(screen.getByText('Hard'));
+    fireEvent.press(screen.getByText('Save preset'));
+
+    expect(screen.getByText('Study Sprint')).toBeTruthy();
+    expect(screen.getByText('45 min')).toBeTruthy();
+  });
+
+  it('edits an existing preset from the inline editor', () => {
+    render(<HomeScreen />);
+    fireEvent.press(screen.getByText('Create starter presets'));
+    fireEvent.press(screen.getByText('Edit Reading'));
+    fireEvent.changeText(screen.getByPlaceholderText('Preset name'), 'Night Read');
+    fireEvent.changeText(screen.getByPlaceholderText('Duration minutes'), '35');
+    fireEvent.press(screen.getByText('Save preset'));
+
+    expect(screen.getByText('Night Read')).toBeTruthy();
+    expect(screen.getByText('35 min')).toBeTruthy();
+    expect(screen.queryByText('Reading')).toBeNull();
+  });
+
+  it('deletes a preset from the inline editor', () => {
+    render(<HomeScreen />);
+    fireEvent.press(screen.getByText('Create starter presets'));
+    fireEvent.press(screen.getByText('Edit Wind Down'));
+    fireEvent.press(screen.getByText('Delete preset'));
+
+    expect(screen.queryByText('Wind Down')).toBeNull();
+  });
 });

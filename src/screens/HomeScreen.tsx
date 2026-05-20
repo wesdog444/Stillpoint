@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FocusOrb } from '../components/FocusOrb';
 import { PresetTile } from '../components/PresetTile';
 import { useTheme } from '../theme/theme';
-import { usePresetStore, type PresetDraft } from '../state/presetStore';
+import { usePresetStore, type FrictionMode, type Preset, type PresetDraft } from '../state/presetStore';
 import { useSessionStore } from '../state/sessionStore';
 import { getCompletedFocusMinutesForDay } from '../data/sessionRepository';
 import { getCurrentStreak, getLongestStreak } from '../data/streakRepository';
@@ -16,16 +16,35 @@ const STARTER_PRESETS: PresetDraft[] = [
   { name: 'Wind Down', durationMinutes: 20, frictionMode: 'intention' },
 ];
 
+const FRICTION_MODES: FrictionMode[] = ['hard', 'soft', 'intention', 'cheat'];
+
+const FRICTION_LABELS: Record<FrictionMode, string> = {
+  hard: 'Hard',
+  soft: 'Soft',
+  intention: 'Intention',
+  cheat: 'Cheat',
+};
+
+type PresetEditorDraft = {
+  id: number | null;
+  name: string;
+  durationMinutes: string;
+  frictionMode: FrictionMode;
+};
+
 export function HomeScreen() {
   const theme = useTheme();
   const presets = usePresetStore((state) => state.presets);
   const createPreset = usePresetStore((state) => state.createPreset);
+  const editPreset = usePresetStore((state) => state.editPreset);
+  const removePreset = usePresetStore((state) => state.removePreset);
   const activeSession = useSessionStore((state) => state.activeSession);
   const startSession = useSessionStore((state) => state.startSession);
   const tick = useSessionStore((state) => state.tick);
   const cancelSession = useSessionStore((state) => state.cancelSession);
   const dismissComplete = useSessionStore((state) => state.dismissComplete);
   const [seeded, setSeeded] = useState(false);
+  const [presetDraft, setPresetDraft] = useState<PresetEditorDraft | null>(null);
 
   const sessionStatus = activeSession?.status ?? 'idle';
   const remainingSeconds = activeSession?.remainingSeconds ?? 0;
@@ -52,6 +71,49 @@ export function HomeScreen() {
   const seedStarterPresets = () => {
     STARTER_PRESETS.forEach((preset) => createPreset(preset));
     setSeeded(true);
+  };
+
+  const openNewPreset = () => {
+    setPresetDraft({
+      id: null,
+      name: '',
+      durationMinutes: '25',
+      frictionMode: 'soft',
+    });
+  };
+
+  const openEditPreset = (preset: Preset) => {
+    setPresetDraft({
+      id: preset.id,
+      name: preset.name,
+      durationMinutes: String(preset.durationMinutes),
+      frictionMode: preset.frictionMode,
+    });
+  };
+
+  const savePreset = () => {
+    if (!presetDraft) return;
+    const name = presetDraft.name.trim();
+    const durationMinutes = Number(presetDraft.durationMinutes);
+    if (!name || !Number.isFinite(durationMinutes) || durationMinutes <= 0) return;
+
+    const draft: PresetDraft = {
+      name,
+      durationMinutes,
+      frictionMode: presetDraft.frictionMode,
+    };
+    if (presetDraft.id === null) {
+      createPreset(draft);
+    } else {
+      editPreset(presetDraft.id, draft);
+    }
+    setPresetDraft(null);
+  };
+
+  const deletePreset = () => {
+    if (presetDraft?.id === null || !presetDraft) return;
+    removePreset(presetDraft.id);
+    setPresetDraft(null);
   };
 
   return (
@@ -133,13 +195,20 @@ export function HomeScreen() {
             <Text style={[theme.typography.cardTitle, { color: theme.colors.textPrimary }]}>
               Quick Presets
             </Text>
-            {presets.length === 0 ? (
-              <Pressable accessibilityRole="button" onPress={seedStarterPresets}>
+            <View style={styles.headerActions}>
+              <Pressable accessibilityRole="button" onPress={openNewPreset}>
                 <Text style={[theme.typography.label, { color: theme.colors.accent }]}>
-                  Create starter presets
+                  New preset
                 </Text>
               </Pressable>
-            ) : null}
+              {presets.length === 0 ? (
+                <Pressable accessibilityRole="button" onPress={seedStarterPresets}>
+                  <Text style={[theme.typography.label, { color: theme.colors.accent }]}>
+                    Create starter presets
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
           </View>
 
           {presets.length === 0 && !seeded ? (
@@ -148,20 +217,122 @@ export function HomeScreen() {
             </Text>
           ) : null}
 
+          {presetDraft ? (
+            <View style={[styles.editor, { backgroundColor: theme.colors.bgRaised, borderColor: theme.colors.border }]}>
+              <Text style={[theme.typography.cardTitle, { color: theme.colors.textPrimary }]}>
+                {presetDraft.id === null ? 'New preset' : 'Edit preset'}
+              </Text>
+              <TextInput
+                onChangeText={(name) => setPresetDraft((draft) => (draft ? { ...draft, name } : draft))}
+                placeholder="Preset name"
+                placeholderTextColor={theme.colors.textMuted}
+                style={[
+                  styles.input,
+                  {
+                    borderColor: theme.colors.border,
+                    color: theme.colors.textPrimary,
+                    fontFamily: theme.fontFamily.body,
+                  },
+                ]}
+                value={presetDraft.name}
+              />
+              <TextInput
+                keyboardType="number-pad"
+                onChangeText={(durationMinutes) =>
+                  setPresetDraft((draft) => (draft ? { ...draft, durationMinutes } : draft))
+                }
+                placeholder="Duration minutes"
+                placeholderTextColor={theme.colors.textMuted}
+                style={[
+                  styles.input,
+                  {
+                    borderColor: theme.colors.border,
+                    color: theme.colors.textPrimary,
+                    fontFamily: theme.fontFamily.body,
+                  },
+                ]}
+                value={presetDraft.durationMinutes}
+              />
+              <View style={styles.modeRow}>
+                {FRICTION_MODES.map((mode) => {
+                  const selected = presetDraft.frictionMode === mode;
+                  return (
+                    <Pressable
+                      accessibilityRole="button"
+                      key={mode}
+                      onPress={() =>
+                        setPresetDraft((draft) => (draft ? { ...draft, frictionMode: mode } : draft))
+                      }
+                      style={[
+                        styles.modeButton,
+                        {
+                          backgroundColor: selected ? theme.colors.purple600 : 'transparent',
+                          borderColor: selected ? theme.colors.purple400 : theme.colors.border,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          theme.typography.label,
+                          { color: selected ? theme.colors.textPrimary : theme.colors.textSecondary },
+                        ]}
+                      >
+                        {FRICTION_LABELS[mode]}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <View style={styles.editorActions}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={savePreset}
+                  style={[styles.primaryButton, styles.editorButton, { backgroundColor: theme.colors.accentDeep }]}
+                >
+                  <Text style={[theme.typography.label, styles.buttonText, { color: theme.colors.textPrimary }]}>
+                    Save preset
+                  </Text>
+                </Pressable>
+                {presetDraft.id !== null ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={deletePreset}
+                    style={[styles.secondaryButton, styles.editorButton, { borderColor: theme.colors.danger }]}
+                  >
+                    <Text style={[theme.typography.label, styles.buttonText, { color: theme.colors.danger }]}>
+                      Delete preset
+                    </Text>
+                  </Pressable>
+                ) : null}
+                <Pressable accessibilityRole="button" onPress={() => setPresetDraft(null)}>
+                  <Text style={[theme.typography.label, { color: theme.colors.textMuted }]}>
+                    Cancel edit
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
+
           <View style={styles.presetList}>
             {presets.map((preset) => (
-              <PresetTile
-                key={preset.id}
-                durationMinutes={preset.durationMinutes}
-                frictionMode={preset.frictionMode}
-                name={preset.name}
-                onPress={() =>
-                  startSession({
-                    durationMinutes: preset.durationMinutes,
-                    presetId: preset.id,
-                  })
-                }
-              />
+              <View key={preset.id} style={styles.presetShell}>
+                <PresetTile
+                  durationMinutes={preset.durationMinutes}
+                  frictionMode={preset.frictionMode}
+                  name={preset.name}
+                  onPress={() =>
+                    startSession({
+                      durationMinutes: preset.durationMinutes,
+                      presetId: preset.id,
+                    })
+                  }
+                />
+                <Pressable accessibilityRole="button" onPress={() => openEditPreset(preset)}>
+                  <Text style={[theme.typography.label, styles.editLink, { color: theme.colors.textMuted }]}>
+                    Edit {preset.name}
+                  </Text>
+                </Pressable>
+              </View>
             ))}
           </View>
         </View>
@@ -237,7 +408,49 @@ const styles = StyleSheet.create({
     gap: 16,
     justifyContent: 'space-between',
   },
+  headerActions: {
+    alignItems: 'flex-end',
+    gap: 10,
+  },
+  editor: {
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 12,
+    padding: 16,
+  },
+  input: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  modeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  modeButton: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  editorActions: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  editorButton: {
+    minWidth: 170,
+  },
   presetList: {
     gap: 12,
+  },
+  presetShell: {
+    gap: 8,
+  },
+  editLink: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 4,
+    textTransform: 'uppercase',
   },
 });
