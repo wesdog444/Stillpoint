@@ -19,43 +19,43 @@ Session summary so far
 - Codex used the relevant skills for planning/TDD/UI work and re-checked the Expo SDK 54 docs before coding.
 - Codex created branch codex/focus-ui-polish.
 - Codex wrote docs/superpowers/plans/2026-05-20-focus-ui-polish.md.
+- Codex committed the initial plan/handoff: 86d1010 docs: add Focus UI polish plan and handoff.
+- Codex completed Task 1:
+  1. Added a failing repository test for summing completed focus minutes by day.
+  2. Confirmed the test failed because getCompletedFocusMinutesForDay did not exist.
+  3. Added getCompletedFocusMinutesForDay(dayKey: string) to src/data/sessionRepository.ts.
+  4. Re-ran npx jest src/data/__tests__/sessionRepository.test.ts successfully.
+  5. Ran npx tsc --noEmit successfully.
+  6. Committed c184a61 feat: add completed focus minutes query.
 - Scope for this slice:
-  1. Add a completed-minutes query to sessionRepository.
-  2. Make Home tick active sessions every second and show today/streak stats.
+  1. Add a completed-minutes query to sessionRepository. DONE.
+  2. Make Home tick active sessions every second and show today/streak stats. NEXT.
   3. Add a minimal inline preset editor to create/edit/delete presets on Home.
   4. Run full verification and merge when clean.
-- No production code for this polish slice has been written yet beyond the plan and this handoff update.
 
 Current state
 - Branch: codex/focus-ui-polish
 - Base branch: master
 - Worktree currently has:
-  - new docs/superpowers/plans/2026-05-20-focus-ui-polish.md
-  - modified CODEX_TO_CLAUDE_HANDOFF.txt
-- These should be committed before continuing if not already committed.
+  - modified CODEX_TO_CLAUDE_HANDOFF.txt for this progress checkpoint
+- Latest completed code commit: c184a61 feat: add completed focus minutes query.
 
 Step-by-step of the in-flight task
-1. Commit the plan and this handoff update:
-   - git add docs/superpowers/plans/2026-05-20-focus-ui-polish.md CODEX_TO_CLAUDE_HANDOFF.txt
-   - git commit -m "docs: add Focus UI polish plan and handoff"
-2. Task 1: completed focus minutes helper.
-   - Add failing test in src/data/__tests__/sessionRepository.test.ts.
-   - Run npx jest src/data/__tests__/sessionRepository.test.ts and confirm it fails because getCompletedFocusMinutesForDay is missing.
-   - Add getCompletedFocusMinutesForDay(dayKey: string): number to src/data/sessionRepository.ts.
-   - Re-run focused test.
-   - Commit "feat: add completed focus minutes query".
-3. Task 2: Home stats and live ticking.
+1. Commit this updated handoff checkpoint if not already committed:
+   - git add CODEX_TO_CLAUDE_HANDOFF.txt
+   - git commit -m "docs: checkpoint focus UI polish handoff"
+2. Task 2: Home stats and live ticking.
    - Add failing HomeScreen tests for interval ticking and stats after completion.
    - Implement useEffect interval while activeSession.status is running.
    - Add stat row using getCompletedFocusMinutesForDay(todayKey()), getCurrentStreak(), and getLongestStreak().
    - Re-run HomeScreen tests.
    - Commit "feat: add live home stats and ticking".
-4. Task 3: inline preset editor.
+3. Task 3: inline preset editor.
    - Add failing HomeScreen tests for New preset, Edit, Save preset, Delete preset.
    - Implement TextInput-based editor in HomeScreen with local draft state.
    - Re-run HomeScreen tests.
    - Commit "feat: add inline preset editor".
-5. Task 4: verification and merge.
+4. Task 4: verification and merge.
    - Run npx jest.
    - Run npx tsc --noEmit.
    - Run npx expo export --platform ios --output-dir ./.tmp-export and delete ./.tmp-export.
