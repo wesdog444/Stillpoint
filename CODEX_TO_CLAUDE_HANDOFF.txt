@@ -45,11 +45,16 @@ Session summary so far
   6. Re-ran npx jest src/screens/__tests__/HomeScreen.test.tsx successfully.
   7. Ran npx tsc --noEmit successfully.
   8. Committed 594688a feat: add inline preset editor.
+- Codex completed Task 4 verification on codex/focus-ui-polish:
+  1. npx jest passed: 18 suites, 88 tests.
+  2. npx tsc --noEmit passed.
+  3. npx expo export --platform ios --output-dir ./.tmp-export passed and the temp export directory was removed.
+  4. npx expo-doctor passed: 17/17 checks.
 - Scope for this slice:
   1. Add a completed-minutes query to sessionRepository. DONE.
   2. Make Home tick active sessions every second and show today/streak stats. DONE.
   3. Add a minimal inline preset editor to create/edit/delete presets on Home. DONE.
-  4. Run full verification and merge when clean. NEXT.
+  4. Run full verification and merge when clean. VERIFIED; MERGE NEXT.
 
 Current state
 - Branch: codex/focus-ui-polish
@@ -57,6 +62,7 @@ Current state
 - Worktree currently has:
   - modified CODEX_TO_CLAUDE_HANDOFF.txt for this progress checkpoint
 - Latest completed code commit: 594688a feat: add inline preset editor.
+- Verification completed on feature branch.
 
 Step-by-step of the in-flight task
 1. Commit this updated handoff checkpoint if not already committed:
@@ -68,15 +74,12 @@ Step-by-step of the in-flight task
 3. Commit this updated handoff checkpoint if not already committed:
    - git add CODEX_TO_CLAUDE_HANDOFF.txt
    - git commit -m "docs: checkpoint focus UI polish handoff after editor"
-4. Task 4: verification and merge.
-   - Run npx jest.
-   - Run npx tsc --noEmit.
-   - Run npx expo export --platform ios --output-dir ./.tmp-export and delete ./.tmp-export.
-   - Run npx expo-doctor.
-   - Update this handoff with exact commits/results.
-   - Merge codex/focus-ui-polish to master by fast-forward if clean.
+4. If this handoff is being read before merge:
+   - Commit this handoff update if not already committed.
+   - Merge codex/focus-ui-polish to master by fast-forward.
    - Re-run at least npx jest on master, preferably all checks.
    - Delete codex/focus-ui-polish after merge.
+   - Update this handoff one final time on master with final state.
 
 Roadmap from here
 - Finish this Focus UI polish slice first.
