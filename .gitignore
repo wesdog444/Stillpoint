@@ -42,4 +42,6 @@ yarn-error.*
 
 # Claude Code local session/settings dir
 .claude/
+__pycache__/
+*.pyc
 .tmp-export/
