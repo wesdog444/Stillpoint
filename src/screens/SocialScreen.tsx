@@ -35,14 +35,19 @@ export function SocialScreen({ onOpenSite }: Props) {
           <Pressable
             key={rule.key}
             testID={`site-card-${rule.key}`}
+            accessibilityRole="button"
+            accessibilityLabel={`Open sanitized ${rule.displayName}`}
+            accessibilityHint={`Opens ${rule.displayName} without ${rule.removed.join(', ')}`}
             onPress={() => onOpenSite(rule.key)}
-            style={[
+            style={({ pressed }) => [
               styles.card,
               {
                 backgroundColor: theme.colors.bgRaised,
-                borderColor: theme.colors.border,
+                borderColor: pressed ? theme.colors.purple400 : theme.colors.border,
                 borderRadius: theme.radius.card,
                 padding: theme.spacing.md,
+                opacity: pressed ? 0.82 : 1,
+                transform: [{ scale: pressed ? 0.99 : 1 }],
               },
             ]}
           >
@@ -61,5 +66,5 @@ export function SocialScreen({ onOpenSite }: Props) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  card: { borderWidth: 1, gap: 4 },
+  card: { borderWidth: 1, gap: 4, minHeight: 88, justifyContent: 'center' },
 });

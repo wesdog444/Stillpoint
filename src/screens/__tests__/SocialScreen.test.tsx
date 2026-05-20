@@ -22,4 +22,11 @@ describe('SocialScreen', () => {
     fireEvent.press(screen.getByTestId('site-card-youtube'));
     expect(onOpenSite).toHaveBeenCalledWith('youtube');
   });
+
+  it('exposes each card as an accessible button', () => {
+    render(<SocialScreen onOpenSite={() => {}} />);
+    expect(
+      screen.getByRole('button', { name: /open sanitized youtube/i }),
+    ).toBeTruthy();
+  });
 });
