@@ -1,6 +1,6 @@
 Stillpoint Plan 5 handoff from Codex to Claude/fresh Codex
 Date: 2026-05-20
-Current branch: friction-layer
+Current branch when written: friction-layer
 
 READ FIRST
 - AGENTS.md
@@ -14,43 +14,40 @@ SESSION SUMMARY
 - Created feature branch `friction-layer`.
 - Checked Expo SDK 54 docs before code.
 - Invoked UI UX Pro Max for the Friction Layer and applied its useful React Native guidance: typed navigation, Pressable controls, 44px+ touch targets, visible recovery/error feedback, and accessible labels.
-- Completed Plan 5 Tasks 1-4:
-  1. Intention repository.
-  2. Cheat-pass repository.
-  3. Pure friction gate decision logic.
-  4. FrictionGateScreen with hard, soft, intention, and cheat modes.
+- Implemented Plan 5:
+  1. Intention repository over the existing `intentions` table.
+  2. Cheat-pass repository over the existing `cheat_passes` table.
+  3. Pure `decideFrictionGate` logic.
+  4. `FrictionGateScreen` with hard, soft, intention, and cheat modes.
+  5. `SocialStack` gating before opening the sanitized browser during running focus sessions.
 
 COMMITS CREATED ON `friction-layer`
 - 36985af feat: add intention repository
 - 3392c18 feat: add cheat pass repository
 - 4a66e3b feat: add friction gate decision logic
 - cdf42e0 feat: add friction gate screen
+- 43c39c2 docs: checkpoint Plan 5 handoff after friction screen
+- 8a20275 feat: gate Social browser during focus sessions
 
-VERIFICATION SO FAR
+VERIFICATION DURING IMPLEMENTATION
 - `npx jest src/data/__tests__/intentionRepository.test.ts`: passed, 2 tests.
 - `npx jest src/data/__tests__/cheatPassRepository.test.ts`: passed, 3 tests.
 - `npx jest src/friction/__tests__/gate.test.ts`: passed, 4 tests.
 - `npx jest src/screens/__tests__/FrictionGateScreen.test.tsx`: passed, 5 tests.
+- `npx jest src/nav/__tests__/SocialStack.test.tsx`: passed, 4 tests.
+- `npx jest src/nav`: passed, 2 suites / 7 tests.
+- `npx tsc --noEmit`: exit 0 after Task 5.
 
-IN-FLIGHT TASK
-Next task is Task 5: wire Social navigation through the gate.
-Steps:
-1. Replace `src/nav/__tests__/SocialStack.test.tsx` with the expanded test from Plan 5.
-2. Run `npx jest src/nav/__tests__/SocialStack.test.tsx`; expected failure because SocialStack still opens Browser directly.
-3. Replace `src/nav/SocialStack.tsx` with the gated version from Plan 5.
-4. Run `npx jest src/nav/__tests__/SocialStack.test.tsx`.
-5. Run `npx jest src/nav`.
-6. Run `npx tsc --noEmit`.
-7. Commit `feat: gate Social browser during focus sessions`.
+FINAL VERIFICATION
+- `npx jest`: 27 suites / 124 tests passed.
+- `npx tsc --noEmit`: exit 0.
+- `npx expo export --platform ios --output-dir ./.tmp-export`: exit 0; bundled iOS successfully and `.tmp-export` was removed afterward.
+- `npx expo-doctor`: 17/17 checks passed.
 
-REMAINING PLAN 5 ROADMAP
-- Task 5: Wire SocialStack through FrictionGate.
-- Task 6: Final handoff and verification:
-  - `npx jest`
-  - `npx tsc --noEmit`
-  - `npx expo export --platform ios --output-dir ./.tmp-export`, then remove `.tmp-export`
-  - `npx expo-doctor`
-- Merge `friction-layer` to `master` after verification and re-verify on master.
+CURRENT STATE
+- Plan 5 implementation is complete and verified on feature branch `friction-layer`.
+- Next action is merge `friction-layer` into `master`, then re-run verification on master.
+- Unrelated untracked folder remains: `CC-Session-Logs/`.
 
 PROJECT ROADMAP AFTER PLAN 5
 - Plan 6: Stats & Insights.
@@ -61,4 +58,3 @@ NOTES / RISKS
 - Friction only gates Stillpoint's own sanitized WebView.
 - Blocks-tab always-gated settings are still future work.
 - UI UX Pro Max is now a required workflow step for UI work via AGENTS.md.
-- `CC-Session-Logs/` remains an unrelated untracked folder from prior context compression.
