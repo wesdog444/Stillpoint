@@ -27,10 +27,19 @@ Session summary so far
   4. Re-ran npx jest src/data/__tests__/sessionRepository.test.ts successfully.
   5. Ran npx tsc --noEmit successfully.
   6. Committed c184a61 feat: add completed focus minutes query.
+- Codex completed Task 2:
+  1. Added failing HomeScreen tests for interval ticking and Home stats.
+  2. Confirmed HomeScreen tests failed because the timer did not tick and stat text did not exist.
+  3. Updated HomeScreen to run a setInterval while activeSession.status is running.
+  4. Added Home stat cards for completed minutes today, current streak, and longest streak.
+  5. The RootNavigator test then failed because it renders Home directly without App's initDatabase step; Codex fixed RootNavigator.test.tsx to reset/init the DB in beforeEach, matching the real App lifecycle.
+  6. Re-ran HomeScreen and RootNavigator focused tests successfully.
+  7. Ran npx tsc --noEmit successfully.
+  8. Committed 1608280 feat: add live home stats and ticking.
 - Scope for this slice:
   1. Add a completed-minutes query to sessionRepository. DONE.
-  2. Make Home tick active sessions every second and show today/streak stats. NEXT.
-  3. Add a minimal inline preset editor to create/edit/delete presets on Home.
+  2. Make Home tick active sessions every second and show today/streak stats. DONE.
+  3. Add a minimal inline preset editor to create/edit/delete presets on Home. NEXT.
   4. Run full verification and merge when clean.
 
 Current state
@@ -38,18 +47,15 @@ Current state
 - Base branch: master
 - Worktree currently has:
   - modified CODEX_TO_CLAUDE_HANDOFF.txt for this progress checkpoint
-- Latest completed code commit: c184a61 feat: add completed focus minutes query.
+- Latest completed code commit: 1608280 feat: add live home stats and ticking.
 
 Step-by-step of the in-flight task
 1. Commit this updated handoff checkpoint if not already committed:
    - git add CODEX_TO_CLAUDE_HANDOFF.txt
    - git commit -m "docs: checkpoint focus UI polish handoff"
-2. Task 2: Home stats and live ticking.
-   - Add failing HomeScreen tests for interval ticking and stats after completion.
-   - Implement useEffect interval while activeSession.status is running.
-   - Add stat row using getCompletedFocusMinutesForDay(todayKey()), getCurrentStreak(), and getLongestStreak().
-   - Re-run HomeScreen tests.
-   - Commit "feat: add live home stats and ticking".
+2. Commit this updated handoff checkpoint if not already committed:
+   - git add CODEX_TO_CLAUDE_HANDOFF.txt
+   - git commit -m "docs: checkpoint focus UI polish handoff after stats"
 3. Task 3: inline preset editor.
    - Add failing HomeScreen tests for New preset, Edit, Save preset, Delete preset.
    - Implement TextInput-based editor in HomeScreen with local draft state.
