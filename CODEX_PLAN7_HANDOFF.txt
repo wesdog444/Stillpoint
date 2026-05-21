@@ -64,6 +64,7 @@ COMMITS CREATED
 - a24cd94 feat: add stillpoint:// deep-link configuration
 - eb8ac48 docs: checkpoint Plan 7 handoff after deep links
 - f334b93 feat: gate onboarding on first run and enable deep linking
+- 60e6019 docs: checkpoint Plan 7 handoff after app wiring
 
 VERIFICATION SO FAR
 - `npx jest`: 32 suites / 144 tests passed after Task 1.
@@ -74,19 +75,21 @@ VERIFICATION SO FAR
 - `npx jest src/nav/__tests__/linking.test.ts`: 3 tests passed after Task 5.
 - `npx tsc --noEmit`: exit 0 after Task 6.
 - `npx jest src/nav src/onboarding`: 6 suites / 22 tests passed after Task 6.
+- Final feature-branch verification:
+  - `npx jest`: 36 suites / 160 tests passed.
+  - `npx tsc --noEmit`: exit 0.
+  - `npx expo export --platform ios --output-dir ./.tmp-export`: exit 0; `.tmp-export` removed afterward.
+  - `npx expo-doctor`: 17/17 checks passed.
 
 IN-FLIGHT TASK
-Next task is Task 7: Full-suite verification.
+Plan 7 is implemented and verified on branch `onboarding-deep-links`.
 Steps:
-1. Run `npx jest`.
-2. Run `npx tsc --noEmit`.
-3. Run `npx expo export --platform ios --output-dir ./.tmp-export`, then remove `.tmp-export`.
-4. Run `npx expo-doctor`.
-5. Update this handoff with final results and commit it.
-6. Merge `onboarding-deep-links` into master, re-run verification on master, delete the branch.
+1. Merge `onboarding-deep-links` into `master`.
+2. Re-run `npx jest`, `npx tsc --noEmit`, `npx expo export --platform ios --output-dir ./.tmp-export`, and `npx expo-doctor` on master.
+3. Delete the merged branch.
 
 REMAINING PLAN 7 ROADMAP
-- T7 full verification: `npx jest`, `npx tsc --noEmit`, `npx expo export --platform ios --output-dir ./.tmp-export`, cleanup `.tmp-export`, `npx expo-doctor`; then merge to master and re-verify.
+- Merge to master and re-verify.
 
 PROJECT ROADMAP AFTER PLAN 7
 - Plan 8: CI/dev-build pipeline, Swift App Intents, unsigned .ipa for Sideloadly, real-device smoke test.
