@@ -34,6 +34,7 @@ describe('BrowserScreen', () => {
     render(<BrowserScreen siteKey="x" />);
     const webview = screen.getByTestId('mock-webview');
     expect(webview.props.injectedJavaScript).toBe(buildInjection(getRule('x')));
+    expect(webview.props.injectedJavaScriptBeforeContentLoaded).toBe(buildInjection(getRule('x')));
   });
 
   it('shows the site name in a header', () => {
@@ -105,10 +106,10 @@ describe('BrowserScreen', () => {
     expect(screen.getByText('Account manager')).toBeTruthy();
   });
 
-  it('renders destination buttons that avoid the reels tab', () => {
+  it('does not render Stillpoint destination chips inside the site browser', () => {
     render(<BrowserScreen siteKey="instagram" />);
-    expect(screen.getByText('Messages')).toBeTruthy();
-    expect(screen.getByText('Search')).toBeTruthy();
+    expect(screen.queryByText('Messages')).toBeNull();
+    expect(screen.queryByText('Search')).toBeNull();
     expect(screen.queryByText('Reels')).toBeNull();
   });
 });

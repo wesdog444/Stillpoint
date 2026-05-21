@@ -16,6 +16,7 @@ const RULES: Record<SiteKey, SanitizerRule> = {
     hideSelectors: [
       'a[href="/reels/"]',
       'a[href*="/reels/"]',
+      'nav a[href*="/reels/"]',
       'a[href="/explore/"]',
       'a[href*="/explore/"]',
       'div[aria-label="Explore"]',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { getFocusedRouteNameFromRoute, NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/theme';
 import { TABS } from './tabs';
@@ -10,6 +10,10 @@ const Tab = createBottomTabNavigator();
 
 export function RootNavigator() {
   const theme = useTheme();
+  const visibleTabBarStyle = {
+    backgroundColor: theme.colors.bgDeep,
+    borderTopColor: theme.colors.border,
+  };
 
   return (
     <NavigationContainer linking={linking}>
@@ -18,10 +22,7 @@ export function RootNavigator() {
           headerShown: false,
           tabBarActiveTintColor: theme.colors.purple400,
           tabBarInactiveTintColor: theme.colors.textMuted,
-          tabBarStyle: {
-            backgroundColor: theme.colors.bgDeep,
-            borderTopColor: theme.colors.border,
-          },
+          tabBarStyle: visibleTabBarStyle,
           tabBarLabelStyle: {
             fontFamily: theme.fontFamily.bodyMedium,
             fontSize: 10,
@@ -33,9 +34,17 @@ export function RootNavigator() {
             key={tab.name}
             name={tab.name}
             component={tab.component}
-            options={{
-              tabBarLabel: tab.label,
-              tabBarIcon: ({ size, color }) => <tab.icon size={size} color={color} />,
+            options={({ route }) => {
+              const focusedRoute = getFocusedRouteNameFromRoute(route);
+              const socialRoute = tab.name === 'Social' ? focusedRoute ?? 'SocialHome' : undefined;
+              return {
+                tabBarLabel: tab.label,
+                tabBarIcon: ({ size, color }) => <tab.icon size={size} color={color} />,
+                tabBarStyle:
+                  socialRoute === 'Browser'
+                    ? { ...visibleTabBarStyle, display: 'none' }
+                    : visibleTabBarStyle,
+              };
             }}
           />
         ))}

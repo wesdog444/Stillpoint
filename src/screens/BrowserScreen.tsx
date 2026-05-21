@@ -18,7 +18,6 @@ import { useTheme } from '../theme/theme';
 import { getRule } from '../sanitizer/rules';
 import { buildInjection } from '../sanitizer/injection';
 import type { SiteKey } from '../sanitizer/types';
-import { getSocialDestinations } from '../social/destinations';
 import { formatElapsedSeconds } from '../ui/sessionTimer';
 
 type Props = {
@@ -37,7 +36,6 @@ export function BrowserScreen({ siteKey, onReturnHome }: Props) {
   const [toolbarOpen, setToolbarOpen] = useState(false);
   const [applying, setApplying] = useState(true);
   const [accountManagerOpen, setAccountManagerOpen] = useState(false);
-  const destinations = getSocialDestinations(siteKey);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -45,12 +43,6 @@ export function BrowserScreen({ siteKey, onReturnHome }: Props) {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-
-  const openUrl = (url: string) => {
-    setApplying(true);
-    setCurrentUrl(url);
-    setToolbarOpen(false);
-  };
 
   return (
     <SafeAreaView testID="screen-browser" style={styles.safe}>
@@ -63,33 +55,11 @@ export function BrowserScreen({ siteKey, onReturnHome }: Props) {
         </View>
       </View>
 
-      <View style={styles.destinationRail}>
-        {destinations.map((destination) => (
-          <Pressable
-            key={destination.key}
-            accessibilityRole="button"
-            accessibilityLabel={`Open ${destination.label}`}
-            hitSlop={8}
-            onPress={() => {
-              if (destination.kind === 'breathe') {
-                onReturnHome?.();
-                return;
-              }
-              if (destination.url) openUrl(destination.url);
-            }}
-            style={({ pressed }) => [styles.destinationChip, { opacity: pressed ? 0.75 : 1 }]}
-          >
-            <Text style={[theme.typography.label, styles.destinationText]}>
-              {destination.label}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
-
       <View style={styles.browserPane}>
         <WebView
           ref={webViewRef}
           source={{ uri: currentUrl }}
+          injectedJavaScriptBeforeContentLoaded={injection}
           injectedJavaScript={injection}
           sharedCookiesEnabled
           domStorageEnabled
@@ -205,23 +175,15 @@ export function BrowserScreen({ siteKey, onReturnHome }: Props) {
               <Text style={[theme.typography.body, styles.accountBody]}>
                 Logins are remembered by {rule.displayName} inside this WebView. Use these destinations to switch accounts, edit profile details, or return to login.
               </Text>
-              {destinations
-                .filter((destination) => destination.key === 'account' || destination.key === 'profile')
-                .map((destination) => (
-                  <Pressable
-                    key={`account-${destination.key}`}
-                    accessibilityRole="button"
-                    onPress={() => {
-                      if (destination.url) openUrl(destination.url);
-                      setAccountManagerOpen(false);
-                    }}
-                    style={styles.accountAction}
-                  >
-                    <Text style={[theme.typography.label, styles.accountActionText]}>
-                      {destination.label}
-                    </Text>
-                  </Pressable>
-                ))}
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setAccountManagerOpen(false)}
+                style={styles.accountAction}
+              >
+                <Text style={[theme.typography.label, styles.accountActionText]}>
+                  Continue in {rule.displayName}
+                </Text>
+              </Pressable>
               <Pressable
                 accessibilityRole="button"
                 onPress={() => setAccountManagerOpen(false)}
@@ -251,25 +213,6 @@ const styles = StyleSheet.create({
   },
   timerWrap: { flexDirection: 'row', alignItems: 'center', gap: 7, flexShrink: 1 },
   statText: { color: '#111111', fontSize: 18 },
-  destinationRail: {
-    minHeight: 62,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E4E4E4',
-  },
-  destinationChip: {
-    minHeight: 42,
-    borderRadius: 21,
-    paddingHorizontal: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F1F2F4',
-  },
-  destinationText: { color: '#161616' },
   browserPane: { flex: 1, overflow: 'hidden' },
   webview: { flex: 1 },
   menuButton: {

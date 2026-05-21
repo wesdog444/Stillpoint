@@ -1,75 +1,53 @@
-Stillpoint handoff - Strict Purpose Mode sanitizer
+Stillpoint handoff - Instagram fullscreen/Reels bug fix
 Date: 2026-05-21
-Current branch: codex/strict-sanitizer
+Current branch: codex/social-fullscreen-reels-fix
 
 SESSION SUMMARY
-- User asked for a stricter sanitizer for all supported apps, specifically including YouTube and TikTok.
-- I recommended a Strict Purpose Mode pass:
-  - stronger CSS selectors,
-  - text-label blocking for labels like Reels, Shorts, For You, Discover, Suggested, Recommended, Trending,
-  - repeated cleanup for dynamic pages,
-  - autoplay/video disabling.
-- User approved: "Yes lets do it!"
-- Implemented the strict sanitizer changes test-first.
+- User provided a phone screenshot showing that:
+  - Stillpoint destination chips were visible above Instagram.
+  - Stillpoint bottom tab bar was visible below Instagram.
+  - Instagram's Reels icon remained in the middle of Instagram's bottom nav.
+  - The actual site should feel like only the purple-box area is visible.
+- I treated this as a concrete bug pass.
 
 WHAT CHANGED
+- BrowserScreen:
+  - Removed the internal Stillpoint destination rail/chips from the site browser.
+  - WebView now receives the sanitizer through both:
+    - injectedJavaScriptBeforeContentLoaded
+    - injectedJavaScript
+  - This gives the sanitizer a chance to run earlier, before Instagram fully paints.
+- RootNavigator:
+  - Hides the bottom Stillpoint tab bar when Social stack route is Browser.
+  - Restores it on SocialHome and other tabs.
+- Instagram sanitizer:
+  - Added `nav a[href*="/reels/"]`.
+  - Added `hideInstagramReelsNav()` inside the injected script.
+  - The function targets `svg[aria-label*="Reels"]`, `a[href*="/reels"]`, and `a[href*="/reel"]`, then hides the closest link/tab/nav/card container.
 
-Rule model
-- src/sanitizer/types.ts:
-  - Added `textBlocklist: string[]`.
-  - Added optional `disableVideoAutoplay?: boolean`.
-
-Injector
-- src/sanitizer/injection.ts:
-  - Builds a `textBlocklist` array into the injected WebView script.
-  - Adds `hideByStillpointLabel()` to scan visible labels and hide the nearest clickable/card/nav surface.
-  - Adds `disableStillpointVideos()` to pause videos, mute them, remove autoplay, and set autoplay false.
-  - Calls these inside the existing repeated cleanup loop so dynamic content gets re-sanitized after load.
-
-Rules
-- src/sanitizer/rules.ts:
-  - Instagram: stricter Reels/Explore/Suggested/feed selectors plus text labels.
-  - YouTube: stricter Shorts/recommendations/watch-next/comments/end-screen/autoplay selectors plus labels and video disabling.
-  - X: stricter Explore/Trending/Who to follow/sidebar selectors plus labels and video disabling.
-  - TikTok: stricter For You/Explore/Discover/feed/suggested selectors plus labels and video disabling.
-  - Facebook: stricter Reels/Watch/Stories/Marketplace/feed selectors plus labels and video disabling.
-  - Snapchat: stricter Spotlight/Discover/Suggested selectors plus labels and video disabling.
-
-Tests
-- src/sanitizer/__tests__/rules.test.ts:
-  - Verifies every rule has textBlocklist.
-  - Verifies YouTube strict selectors/text labels/autoplay disabling.
-  - Verifies TikTok strict selectors/text labels/autoplay disabling.
-- src/sanitizer/__tests__/injection.test.ts:
-  - Verifies text label blocking is injected.
-  - Verifies video disabling is injected.
-
-VERIFICATION RESULTS
-- Targeted sanitizer tests:
-  npx jest src/sanitizer/__tests__/rules.test.ts src/sanitizer/__tests__/injection.test.ts --runInBand
-  Result: 2 suites passed, 16 tests passed.
-
+VERIFICATION
+- Targeted tests:
+  npx jest src/screens/__tests__/BrowserScreen.test.tsx src/nav/__tests__/RootNavigator.test.tsx src/sanitizer/__tests__/injection.test.ts --runInBand
+  Result: 3 suites passed, 26 tests passed.
 - TypeScript:
   npx tsc --noEmit
   Result: exit 0.
-
 - Full Jest:
   npx jest --runInBand
-  Result: 41 suites passed, 188 tests passed.
-
+  Result: 41 suites passed, 190 tests passed.
 - Expo doctor:
   npx expo-doctor
   Result: 18/18 checks passed.
-
 - iOS export:
   npx expo export --platform ios
-  Result: exit 0, exported to dist.
+  Result: exit 0.
 
-REAL-DEVICE TESTING NEEDED
-- Instagram: confirm Reels and Explore are gone or inaccessible.
-- YouTube: confirm Shorts, comments, recommended/watch-next, and autoplay are hidden/disabled without breaking subscriptions/search/account.
-- TikTok: confirm For You/Discover/feed surfaces are suppressed without breaking messages/profile/account.
-- X/Facebook/Snapchat: confirm strict surfaces are calmer and tune selectors as needed.
-
-KNOWN RISK
-- Strict mode may hide too much on some site revisions. That is an acceptable first tradeoff for Stillpoint, but the exact selectors will need real-device tuning.
+NEXT DEVICE TEST
+- Install the fresh IPA.
+- Open Stillpoint > Social > Instagram.
+- Expected:
+  - No Stillpoint destination chips above Instagram.
+  - No Stillpoint bottom tab bar below Instagram.
+  - Instagram content starts higher.
+  - Instagram Reels nav icon should be hidden.
+- If Reels still appears, the next pass should inspect the live mobile Instagram DOM via Safari Web Inspector on a Mac, because Instagram may be rendering an unlabeled SVG/button variant.

@@ -45,8 +45,17 @@ describe('buildInjection', () => {
   it('includes stronger instagram reels and feed selectors', () => {
     const rule = getRule('instagram');
     expect(rule.hideSelectors).toContain('a[href*="/reels/"]');
+    expect(rule.hideSelectors).toContain('nav a[href*="/reels/"]');
+    expect(rule.hideSelectors).toContain('svg[aria-label="Reels"]');
     expect(rule.hideSelectors).toContain('main[role="main"] article');
     expect(rule.hideSelectors.join(' ')).toContain('Suggested');
+  });
+
+  it('injects instagram reels icon container removal', () => {
+    const js = buildInjection(getRule('instagram'));
+    expect(js).toContain('hideInstagramReelsNav');
+    expect(js).toContain('aria-label') ;
+    expect(js).toContain('/reels');
   });
 
   it('injects text-label blocking for strict purpose mode', () => {

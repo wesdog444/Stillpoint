@@ -36,6 +36,7 @@ export function buildInjection(rule: SanitizerRule): string {
         } catch (e) {}
       });
       hideByStillpointLabel();
+      hideInstagramReelsNav();
       if (disableVideos) disableStillpointVideos();
     }
     function hideNode(node) {
@@ -54,6 +55,15 @@ export function buildInjection(rule: SanitizerRule): string {
         });
         if (!matched) return;
         var surface = node.closest('a, button, nav, aside, article, section, [role="tab"], [role="navigation"], [data-e2e], ytd-rich-section-renderer, ytd-reel-shelf-renderer') || node;
+        hideNode(surface);
+      });
+    }
+    function hideInstagramReelsNav() {
+      var iconNodes = document.querySelectorAll('svg[aria-label*="Reels"], svg[aria-label*="reels"], a[href*="/reels"], a[href*="/reel"]');
+      iconNodes.forEach(function(node) {
+        var label = (node.getAttribute && (node.getAttribute('aria-label') || node.getAttribute('href'))) || '';
+        if (label.toLowerCase().indexOf('reel') === -1 && label.toLowerCase().indexOf('/reels') === -1) return;
+        var surface = node.closest('a, button, [role="tab"], [role="button"], nav > *, div') || node;
         hideNode(surface);
       });
     }
