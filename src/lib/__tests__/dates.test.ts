@@ -1,4 +1,4 @@
-import { dateKey, todayKey, previousDayKey } from '../dates';
+import { dateKey, todayKey, previousDayKey, localTimestamp } from '../dates';
 
 describe('dates', () => {
   it('dateKey formats a Date as YYYY-MM-DD in local time', () => {
@@ -20,5 +20,16 @@ describe('dates', () => {
 
   it('previousDayKey crosses year boundaries', () => {
     expect(previousDayKey('2026-01-01')).toBe('2025-12-31');
+  });
+
+  it('localTimestamp produces a YYYY-MM-DDTHH:MM:SS string', () => {
+    expect(localTimestamp(new Date(2026, 4, 9, 8, 5, 3))).toBe('2026-05-09T08:05:03');
+  });
+
+  it('localTimestamp date portion equals the local dateKey', () => {
+    // This is the timezone guarantee: substr(ts,0,10) must be the LOCAL day,
+    // so day-bucketed session queries agree with todayKey().
+    const d = new Date();
+    expect(localTimestamp(d).slice(0, 10)).toBe(dateKey(d));
   });
 });

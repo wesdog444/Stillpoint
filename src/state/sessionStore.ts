@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { insertSession, completeSession } from '../data/sessionRepository';
 import { recordSessionForDay } from '../data/streakRepository';
-import { todayKey } from '../lib/dates';
+import { todayKey, localTimestamp } from '../lib/dates';
 
 export type SessionStatus = 'running' | 'complete';
 
@@ -32,7 +32,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   activeSession: null,
 
   startSession: ({ durationMinutes, presetId }: StartArgs) => {
-    const startedAt = new Date().toISOString();
+    const startedAt = localTimestamp();
     const sessionId = insertSession({
       startedAt,
       durationPlanned: durationMinutes,
@@ -62,7 +62,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       return;
     }
 
-    completeSession(active.sessionId, new Date().toISOString());
+    completeSession(active.sessionId, localTimestamp());
     recordSessionForDay(todayKey());
     set({
       activeSession: { ...active, remainingSeconds: 0, status: 'complete' },
