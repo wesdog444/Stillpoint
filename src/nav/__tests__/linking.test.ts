@@ -16,4 +16,8 @@ describe('deep-link config', () => {
   it('maps the Home tab', () => {
     expect(linking.config?.screens?.Home).toBe('home');
   });
+
+  it('maps the breathe shortcut route', () => {
+    expect(linking.config?.screens?.Breathe).toBe('breathe');
+  });
 });

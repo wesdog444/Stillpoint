@@ -1,93 +1,135 @@
-Stillpoint handoff — v1.1 polish round (user feedback after first device install)
+Stillpoint handoff - v1.1 polish implemented
 Date: 2026-05-21
-Current branch: master
+Current branch: codex/v1.1-polish
 
->>> TO CODEX: Please BUILD the v1.1 updates below. Brainstorm the designs first
->>> (brainstorming skill), write a spec + plan (writing-plans skill), then execute
->>> it subagent-driven with spec reviews, verify, and merge to master — the same
->>> loop used for Plans 1-8. Invoke the project-local UI UX Pro Max skill before
->>> any UI work (see AGENTS.md). Re-check the Expo SDK 54 docs before coding.
+READ THIS FIRST
+- This session implemented the user-requested v1.1 polish after the first real-device review.
+- The work is not yet merged at the moment this file is written; the expected finish path is:
+  commit -> merge to master -> push to GitHub -> wait for "Build unsigned IPA" to produce a fresh artifact.
+- Do not add native iOS Screen Time / Family Controls code. It requires Apple's restricted
+  com.apple.developer.family-controls entitlement and will not work in a Sideloadly Personal Edition build.
 
-=== SESSION SUMMARY ===
-- Stillpoint was built through Plans 1-8, pushed to GitHub (github.com/wesdog444/
-  Stillpoint), built by the CI workflow into an unsigned IPA, and the owner
-  sideloaded it onto a real iPhone with Sideloadly. IT RUNS ON DEVICE — onboarding
-  renders, native modules work on real hardware.
-- The owner reviewed it on-device and gave four pieces of v1.1 feedback (below).
-- This handoff captures that feedback as the v1.1 scope to build next.
+SESSION SUMMARY
+The user approved a v1.1 polish pass after seeing the app run on an actual iPhone. They wanted:
+1. More enticing and interactive onboarding.
+2. A real stillpoint://breathe destination because the Shortcut route did not go anywhere.
+3. Screen Time permissions.
+4. A SocialLite-style Social tab that feels integrated and sanitized, not like a raw browser.
 
-=== CURRENT STATE ===
-- Branch: master, clean. Plans 1-8 complete and merged.
-- Verified earlier: 36 suites / 160 tests pass, tsc clean, expo export builds,
-  expo-doctor 17/17. CI workflow (.github/workflows/build-ipa.yml) produces a
-  working unsigned IPA.
-- App is installed and confirmed running on the owner's iPhone.
+What I did:
+- Invoked the project-local UI UX Pro Max skill before UI work.
+- Checked Expo SDK 54 docs before coding.
+- Verified the Screen Time request against Apple's entitlement docs and kept it out of scope.
+- Used TDD:
+  - Added failing tests for Facebook/Snapchat sanitizer support.
+  - Added failing tests for SocialLite-style Social shell copy and per-site settings buttons.
+  - Added failing tests for WebView login persistence, top status chrome, applying-preferences overlay, and floating controls.
+  - Added failing tests for the stillpoint://breathe route and a new Breathe screen.
+  - Added failing tests for interactive onboarding site selection.
+- Implemented the v1.1 behavior and re-ran the tests.
 
-=== V1.1 FEEDBACK TO BUILD ===
+IMPLEMENTED CHANGES
 
-(1) ONBOARDING — make it more enticing and interactive.
-    Current state: 4 plain dark text-only steps (Welcome / How Stillpoint works /
-    Gentle reminders / Set up redirect Shortcuts). Functional but flat.
-    Wanted: livelier, more engaging onboarding — imagery/illustration, motion/
-    animation, and interactivity (e.g. let the user pick which social sites they
-    care about DURING onboarding, preview the orb, etc.). Brainstorm the design.
-    Keep the Personal Edition copy honest; keep the "never says block" guard.
+Onboarding
+- src/onboarding/OnboardingFlow.tsx now has an interactive "Choose your defaults" panel on the first step.
+- The picker includes Instagram, YouTube, X, TikTok, Facebook, and Snapchat.
+- Site chips are accessible buttons with selected state and 44px+ touch targets.
+- src/onboarding/steps.ts copy is more inviting and now honestly explains that Screen Time control requires Apple's restricted Family Controls entitlement, so Stillpoint Personal Edition uses Shortcuts redirects instead.
+- The existing guard that onboarding copy never says "block" still passes.
 
-(2) BREATHE DEEP LINK — bug: stillpoint://breathe goes nowhere.
-    Plan 7 described a "breathe" landing target for redirect automations on apps
-    with no sanitized version, but it was never built. src/nav/linking.ts has NO
-    `breathe` route and there is no Breathe screen.
-    Wanted: build a real Breathe screen (a calm breathing-exercise interstitial)
-    and add a `breathe` route to the linking config so stillpoint://breathe works.
+Breathe shortcut
+- Added src/screens/BreatheScreen.tsx.
+- It is a calm shortcut landing screen with a tappable breathing orb cycling Inhale -> Hold -> Exhale -> Rest.
+- Added Breathe as a hidden bottom-tab screen in src/nav/RootNavigator.tsx.
+- Added stillpoint://breathe in src/nav/linking.ts.
 
-(3) SCREEN TIME PERMISSIONS — DO NOT BUILD. Permanently out of scope.
-    The owner asked the app to request Screen Time permissions. This is the iOS
-    Family Controls / Screen Time API and requires the Apple entitlement
-    com.apple.developer.family-controls, granted only to reviewed PAID developer
-    accounts. A Sideloadly-signed build cannot have it — adding the code would
-    crash the app / fail install. This is the entire reason Stillpoint is
-    "Personal Edition" (see spec section 2). Do NOT attempt it. The sideload-
-    compatible substitute already exists: the stillpoint:// redirect Shortcuts.
-    If Codex wants to help here, the only honest move is to (politely, in the
-    build summary) restate this constraint — not implement it.
+Social tab
+- src/screens/SocialScreen.tsx has been redesigned into a warm SocialLite-inspired surface:
+  - Title: "Stillpoint Social"
+  - Subtitle: "Focus forward"
+  - Rounded translucent site cards.
+  - App-style badges for Instagram, YouTube, X, TikTok, Facebook, Snapchat.
+  - BETA pills for the newer/less certain sites.
+  - Per-site settings buttons and chevrons.
+  - "Add apps to Home Screen" card.
+  - Bottom dots and share/help row.
+- This still uses the existing onOpenSite callback, so friction gates remain intact.
 
-(4) SOCIAL TAB — make it a fully integrated "sanitized app", not a raw browser.
-    Reference app: "SocialLite" (the owner has screenshots; description below).
-    IMPORTANT: SocialLite is itself a WebView wrapper — you cannot natively
-    re-implement Instagram/etc. What makes it feel integrated is the custom chrome
-    AROUND the webview. Build that polish on top of the existing BrowserScreen:
-      - A site list styled like SocialLite: rounded cards, each with the site's
-        real icon, a per-site settings gear, and a chevron. Tagline under the
-        app name. (SocialLite also lists Facebook & Snapchat — consider adding
-        them to the current 4: Instagram, X, YouTube, TikTok.)
-      - A branded transition/loading screen when opening a site ("Applying your
-        preferences — Setting up content filters for <Site>") instead of a blank
-        webview load.
-      - Custom chrome over the webview: a top stats strip (time in session,
-        ads blocked, suggested/feed items removed) with a "Block these" style
-        action, and a floating control toolbar (back / home / refresh / forward /
-        settings) — like SocialLite's.
-      - Heavier, more thorough sanitization so the page genuinely feels calm.
-    The owner's words: "fully integrate the website and then Stillpoint transform
-    into the sanitized app." Goal = it should not feel like Safari popped up.
+Sanitized browser
+- src/screens/BrowserScreen.tsx now feels like an integrated sanitized app shell:
+  - Top status strip with elapsed time, "0 ads", "0 suggested".
+  - Blue "Block these" action, matching the user's SocialLite screenshots.
+  - Full-screen "Applying your preferences" transition overlay.
+  - Floating menu button.
+  - Expandable floating toolbar with back, home, refresh, forward, report, settings.
+  - WebView still has sharedCookiesEnabled and domStorageEnabled to preserve logins between visits.
+- No extra native dependencies were added.
 
-=== HOW TO BUILD IT ===
-1. Confirm git clean on master. Create a branch, e.g. `v1.1-polish`.
-2. Brainstorm the onboarding redesign and the Social-tab redesign with the owner
-   (use the brainstorming skill + the visual companion; the owner has SocialLite
-   screenshots to share). Items (2) breathe screen is small and mostly mechanical.
-3. Write a spec + plan(s). This is probably two plans: "v1.1 Social experience"
-   and "v1.1 onboarding + breathe". Split if it gets large.
-4. Execute subagent-driven with spec reviews. Invoke UI UX Pro Max for UI tasks.
-5. Verify (jest, tsc, expo export, expo-doctor), merge to master, push.
-6. The owner re-runs the GitHub Action to get a new IPA and re-sideloads.
+Sanitizer rules
+- src/sanitizer/types.ts now supports:
+  instagram, youtube, x, tiktok, facebook, snapchat.
+- src/sanitizer/rules.ts adds first-pass Facebook and Snapchat rules.
+- YouTube selectors were expanded slightly to hide more recommendation surfaces.
+- Remember: site CSS selectors will drift and need upkeep.
 
-=== ROADMAP / NOTES ===
-- After v1.1: optional Plan 9 (Swift App Intents — needs a Mac to verify) remains
-  the only other deferred item. Not required for v1.
-- The 7-day Sideloadly re-sign cycle is in effect — the owner re-signs weekly.
-- Sanitizer CSS selectors are first-pass and need maintenance as sites change.
-- Everything sanitized stays inside Stillpoint's own WebView. Never touch the
-  native social apps. UI copy: "sanitize"/"calm", never "block".
-- Real-device smoke test of remaining features (focus sessions, friction,
-  sanitized browser logins) is still worth doing now that the app is installed.
+VERIFICATION RESULTS FROM THIS SESSION
+- Targeted TDD suites:
+  npx jest src/sanitizer/__tests__/rules.test.ts src/screens/__tests__/SocialScreen.test.tsx src/screens/__tests__/BrowserScreen.test.tsx src/nav/__tests__/linking.test.ts src/onboarding/__tests__/OnboardingFlow.test.tsx src/screens/__tests__/BreatheScreen.test.tsx --runInBand
+  Result: 6 suites passed, 30 tests passed.
+
+- TypeScript:
+  npx tsc --noEmit
+  Result: exit 0.
+
+- Full tests:
+  npx jest --runInBand
+  Result: 37 suites passed, 169 tests passed.
+
+- Expo doctor:
+  npx expo-doctor
+  Result: 17/17 checks passed.
+
+- iOS JS bundle export:
+  npx expo export --platform ios
+  Result: exit 0, exported to dist.
+
+STEP-BY-STEP IF CONTINUING FROM HERE
+1. Inspect git status. Expected branch: codex/v1.1-polish.
+2. Review changed files, especially:
+   - src/screens/SocialScreen.tsx
+   - src/screens/BrowserScreen.tsx
+   - src/screens/BreatheScreen.tsx
+   - src/onboarding/OnboardingFlow.tsx
+   - src/onboarding/steps.ts
+   - src/sanitizer/rules.ts
+   - src/nav/linking.ts
+   - src/nav/RootNavigator.tsx
+3. Re-run verification if any changes are made:
+   - npx tsc --noEmit
+   - npx jest --runInBand
+   - npx expo-doctor
+   - npx expo export --platform ios
+4. Commit the v1.1 polish.
+5. Merge codex/v1.1-polish into master.
+6. Push master to origin.
+7. Watch GitHub Actions for the "Build unsigned IPA" workflow.
+8. Once green, tell the user to open the successful run and download the workflow artifact.
+
+ROADMAP / REMAINING WORK
+- Real-device smoke test after the new IPA:
+  - Onboarding picker feels good on iPhone.
+  - stillpoint://breathe opens the Breathe screen from Shortcuts.
+  - Social cards open the right sites.
+  - WebView logins persist between visits.
+  - Floating toolbar does not cover critical site controls too badly.
+  - Sanitizer rules actually hide the expected first-pass surfaces.
+- Optional Plan 9:
+  - Swift App Intents. This needs a Mac/Xcode-side implementation and verification.
+- Optional future:
+  - Session-history list screen using getRecentSessions.
+  - Ongoing sanitizer selector maintenance.
+
+IMPORTANT CONSTRAINTS
+- Do not implement native Screen Time permissions in this sideloaded build.
+- It is okay and expected that the Social feature uses WebView. The product goal is custom integrated chrome and sanitization around the WebView, because Instagram/YouTube/X/etc. cannot be reimplemented natively.
+- Keep onboarding copy in the "sanitize/calm/redirect" language family. The existing test prevents the word "block" in onboarding copy.

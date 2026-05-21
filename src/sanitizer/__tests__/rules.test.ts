@@ -1,8 +1,8 @@
 import { SITE_KEYS, getRule, ALL_RULES } from '../rules';
 
 describe('sanitizer rules', () => {
-  it('lists the four supported sites', () => {
-    expect(SITE_KEYS).toEqual(['instagram', 'x', 'youtube', 'tiktok']);
+  it('lists the six supported sites', () => {
+    expect(SITE_KEYS).toEqual(['instagram', 'youtube', 'x', 'tiktok', 'facebook', 'snapchat']);
   });
 
   it('provides a rule for every site key', () => {
@@ -28,6 +28,6 @@ describe('sanitizer rules', () => {
 
   it('getRule throws for an unknown key', () => {
     // @ts-expect-error testing the runtime guard with an invalid key
-    expect(() => getRule('facebook')).toThrow(/unknown site/i);
+    expect(() => getRule('myspace')).toThrow(/unknown site/i);
   });
 });

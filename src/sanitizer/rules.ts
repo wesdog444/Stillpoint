@@ -1,6 +1,6 @@
 import type { SiteKey, SanitizerRule } from './types';
 
-export const SITE_KEYS: SiteKey[] = ['instagram', 'x', 'youtube', 'tiktok'];
+export const SITE_KEYS: SiteKey[] = ['instagram', 'youtube', 'x', 'tiktok', 'facebook', 'snapchat'];
 
 /**
  * First-pass sanitizer rules. Site markup changes often; these selectors are a
@@ -19,6 +19,21 @@ const RULES: Record<SiteKey, SanitizerRule> = {
       'div[aria-label="Explore"]',
     ],
   },
+  youtube: {
+    key: 'youtube',
+    displayName: 'YouTube',
+    url: 'https://www.youtube.com/feed/subscriptions',
+    removed: ['Shorts shelf', 'Recommended grid', 'Autoplay'],
+    hideSelectors: [
+      'ytd-rich-shelf-renderer[is-shorts]',
+      'ytd-reel-shelf-renderer',
+      'a[title="Shorts"]',
+      'ytd-rich-grid-renderer',
+      'ytd-watch-next-secondary-results-renderer',
+    ],
+    script:
+      "document.querySelectorAll('video').forEach(function(v){v.autoplay=false;});",
+  },
   x: {
     key: 'x',
     displayName: 'X',
@@ -30,19 +45,6 @@ const RULES: Record<SiteKey, SanitizerRule> = {
       'aside[aria-label="Trending"]',
     ],
   },
-  youtube: {
-    key: 'youtube',
-    displayName: 'YouTube',
-    url: 'https://www.youtube.com/feed/subscriptions',
-    removed: ['Shorts shelf', 'Recommended grid', 'Autoplay'],
-    hideSelectors: [
-      'ytd-rich-shelf-renderer[is-shorts]',
-      'ytd-reel-shelf-renderer',
-      'a[title="Shorts"]',
-    ],
-    script:
-      "document.querySelectorAll('video').forEach(function(v){v.autoplay=false;});",
-  },
   tiktok: {
     key: 'tiktok',
     displayName: 'TikTok',
@@ -52,6 +54,30 @@ const RULES: Record<SiteKey, SanitizerRule> = {
       'a[href="/foryou"]',
       'a[href="/explore"]',
       'div[data-e2e="recommend-list-item-container"]',
+    ],
+  },
+  facebook: {
+    key: 'facebook',
+    displayName: 'Facebook',
+    url: 'https://m.facebook.com/',
+    removed: ['Reels shelf', 'Suggested posts', 'Watch tab'],
+    hideSelectors: [
+      'a[href*="/watch/"]',
+      'a[href*="/reel/"]',
+      'div[aria-label*="Reels"]',
+      'div[aria-label*="Suggested"]',
+    ],
+  },
+  snapchat: {
+    key: 'snapchat',
+    displayName: 'Snapchat',
+    url: 'https://web.snapchat.com/',
+    removed: ['Spotlight', 'Discover', 'Suggested creators'],
+    hideSelectors: [
+      'a[href*="/spotlight"]',
+      'a[href*="/discover"]',
+      '[aria-label*="Discover"]',
+      '[aria-label*="Spotlight"]',
     ],
   },
 };

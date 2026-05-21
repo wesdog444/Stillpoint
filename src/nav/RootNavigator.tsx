@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/theme';
 import { TABS } from './tabs';
 import { linking } from './linking';
+import { BreatheScreen } from '../screens/BreatheScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -38,6 +39,14 @@ export function RootNavigator() {
             }}
           />
         ))}
+        <Tab.Screen
+          name="Breathe"
+          component={BreatheScreen}
+          options={{
+            tabBarButton: () => null,
+            tabBarItemStyle: { display: 'none' },
+          }}
+        />
       </Tab.Navigator>
     </NavigationContainer>
   );

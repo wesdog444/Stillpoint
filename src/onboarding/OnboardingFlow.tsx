@@ -5,11 +5,23 @@ import { useTheme } from '../theme/theme';
 import { useSettingsStore } from '../state/settingsStore';
 import { requestNotificationPermission } from '../lib/notifications';
 import { ONBOARDING_STEPS } from './steps';
+import { SITE_KEYS } from '../sanitizer/rules';
+import type { SiteKey } from '../sanitizer/types';
+
+const SOCIAL_PICKER_LABELS: Record<SiteKey, string> = {
+  instagram: 'Instagram',
+  youtube: 'YouTube',
+  x: 'X',
+  tiktok: 'TikTok',
+  facebook: 'Facebook',
+  snapchat: 'Snapchat',
+};
 
 export function OnboardingFlow() {
   const theme = useTheme();
   const completeOnboarding = useSettingsStore((s) => s.completeOnboarding);
   const [index, setIndex] = useState(0);
+  const [selectedSites, setSelectedSites] = useState<SiteKey[]>([]);
 
   const step = ONBOARDING_STEPS[index];
   const isLast = index === ONBOARDING_STEPS.length - 1;
@@ -23,6 +35,13 @@ export function OnboardingFlow() {
   };
 
   const goBack = () => setIndex((i) => Math.max(0, i - 1));
+  const toggleSite = (siteKey: SiteKey) => {
+    setSelectedSites((current) =>
+      current.includes(siteKey)
+        ? current.filter((key) => key !== siteKey)
+        : [...current, siteKey],
+    );
+  };
 
   return (
     <SafeAreaView
@@ -50,6 +69,60 @@ export function OnboardingFlow() {
             {paragraph}
           </Text>
         ))}
+
+        {step.key === 'welcome' ? (
+          <View
+            style={[
+              styles.choicePanel,
+              {
+                backgroundColor: theme.colors.bgRaised,
+                borderColor: theme.colors.border,
+                borderRadius: theme.radius.lg,
+              },
+            ]}
+          >
+            <Text style={[theme.typography.cardTitle, { color: theme.colors.textPrimary }]}>
+              Choose your defaults
+            </Text>
+            <Text style={[theme.typography.body, { color: theme.colors.textSecondary }]}>
+              Pick the apps you want Stillpoint to make quieter first.
+            </Text>
+            <View style={styles.siteGrid}>
+              {SITE_KEYS.map((siteKey) => {
+                const selected = selectedSites.includes(siteKey);
+                return (
+                  <Pressable
+                    key={siteKey}
+                    testID={`onboarding-site-${siteKey}`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={`${selected ? 'Selected' : 'Select'} ${SOCIAL_PICKER_LABELS[siteKey]}`}
+                    hitSlop={8}
+                    onPress={() => toggleSite(siteKey)}
+                    style={({ pressed }) => [
+                      styles.siteChip,
+                      {
+                        borderRadius: theme.radius.pill,
+                        borderColor: selected ? theme.colors.accent : theme.colors.border,
+                        backgroundColor: selected ? 'rgba(110,231,183,0.14)' : 'rgba(255,255,255,0.05)',
+                        opacity: pressed ? 0.82 : 1,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        theme.typography.label,
+                        { color: selected ? theme.colors.accent : theme.colors.textSecondary },
+                      ]}
+                    >
+                      {SOCIAL_PICKER_LABELS[siteKey]}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
 
         {step.steps?.map((line, i) => (
           <Text
@@ -122,6 +195,9 @@ export function OnboardingFlow() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  choicePanel: { borderWidth: 1, gap: 12, padding: 16 },
+  siteGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  siteChip: { borderWidth: 1, minHeight: 44, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
   secondaryButton: { borderWidth: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   nav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   backButton: { minHeight: 48, minWidth: 64, justifyContent: 'center' },

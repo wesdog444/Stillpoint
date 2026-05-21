@@ -14,8 +14,8 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     key: 'welcome',
     title: 'Welcome to Stillpoint',
     body: [
-      'Stillpoint helps you use your phone on purpose.',
-      'Start focus sessions, and reach social media through a calm, sanitized browser instead of the endless feed.',
+      'Stillpoint turns the reflexive tap into a moment you can choose.',
+      'Start focus sessions, open calmer social surfaces, and keep the phone from deciding the shape of your day.',
     ],
   },
   {
@@ -24,7 +24,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     body: [
       'Stillpoint is a personal companion, not an enforcer.',
       'It gives you a sanitized way into social sites and gentle friction during focus sessions; the calm path is the easy one.',
-      'It cannot police the native apps; the rest is up to you.',
+      'True Screen Time control needs Apple’s restricted Family Controls entitlement, so Personal Edition uses Shortcuts redirects and calmer defaults instead.',
     ],
   },
   {
@@ -42,6 +42,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     body: [
       'For each social app you want to redirect, create one iOS Shortcuts automation.',
       'Every reflexive tap on that app will bounce you into Stillpoint instead.',
+      'Use stillpoint://breathe when you want a shortcut that opens straight into a breathing reset.',
     ],
     steps: [
       'Open the Shortcuts app and go to the Automation tab.',

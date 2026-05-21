@@ -18,6 +18,7 @@ export const linking: LinkingOptions<any> = {
       Blocks: 'blocks',
       Stats: 'stats',
       Profile: 'profile',
+      Breathe: 'breathe',
     },
   },
 };

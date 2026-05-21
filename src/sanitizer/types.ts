@@ -1,5 +1,5 @@
 /** The social sites Stillpoint can sanitize. */
-export type SiteKey = 'instagram' | 'x' | 'youtube' | 'tiktok';
+export type SiteKey = 'instagram' | 'youtube' | 'x' | 'tiktok' | 'facebook' | 'snapchat';
 
 /** A sanitization rule for one site. */
 export type SanitizerRule = {

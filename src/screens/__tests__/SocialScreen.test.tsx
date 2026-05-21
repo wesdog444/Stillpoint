@@ -6,14 +6,18 @@ describe('SocialScreen', () => {
   it('renders a card for every supported site', () => {
     render(<SocialScreen onOpenSite={() => {}} />);
     expect(screen.getByText('Instagram')).toBeTruthy();
-    expect(screen.getByText('X')).toBeTruthy();
     expect(screen.getByText('YouTube')).toBeTruthy();
+    expect(screen.getAllByText('X').length).toBeGreaterThan(0);
     expect(screen.getByText('TikTok')).toBeTruthy();
+    expect(screen.getByText('Facebook')).toBeTruthy();
+    expect(screen.getByText('Snapchat')).toBeTruthy();
   });
 
-  it('shows what each site strips', () => {
+  it('renders the integrated SocialLite-style shell copy', () => {
     render(<SocialScreen onOpenSite={() => {}} />);
-    expect(screen.getByText(/Reels tab/)).toBeTruthy();
+    expect(screen.getByText('Stillpoint Social')).toBeTruthy();
+    expect(screen.getByText('Focus forward')).toBeTruthy();
+    expect(screen.getByText('Add apps to Home Screen')).toBeTruthy();
   });
 
   it('calls onOpenSite with the site key when a card is tapped', () => {
@@ -28,5 +32,12 @@ describe('SocialScreen', () => {
     expect(
       screen.getByRole('button', { name: /open sanitized youtube/i }),
     ).toBeTruthy();
+  });
+
+  it('exposes per-site preference buttons without opening the site', () => {
+    const onOpenSite = jest.fn();
+    render(<SocialScreen onOpenSite={onOpenSite} />);
+    fireEvent.press(screen.getByTestId('site-settings-instagram'));
+    expect(onOpenSite).not.toHaveBeenCalled();
   });
 });

@@ -13,6 +13,15 @@ describe('OnboardingFlow', () => {
     expect(screen.getByText('Welcome to Stillpoint')).toBeTruthy();
   });
 
+  it('lets the user choose social defaults during onboarding', () => {
+    render(<OnboardingFlow />);
+    expect(screen.getByText('Choose your defaults')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('onboarding-site-instagram'));
+    expect(screen.getByTestId('onboarding-site-instagram').props.accessibilityState).toEqual({
+      selected: true,
+    });
+  });
+
   it('advances through the steps with the Next button', () => {
     render(<OnboardingFlow />);
     fireEvent.press(screen.getByTestId('onboarding-next'));
