@@ -29,6 +29,14 @@ SESSION SUMMARY
   - Added `src/onboarding/steps.ts` with welcome, philosophy, notifications, and Shortcuts walkthrough copy.
   - Verified green: 5 onboarding step-content tests passed, including the "never says block" copy guard.
   - Committed the task.
+- Task 4 completed:
+  - Invoked UI UX Pro Max for onboarding UI guidance.
+  - Applied guidance: visible step progress, Pressable controls, 48px min touch targets, 8px+ spacing, no gesture-only flow.
+  - Wrote `src/onboarding/__tests__/OnboardingFlow.test.tsx` first.
+  - Verified red: missing `../OnboardingFlow`.
+  - Added `src/onboarding/OnboardingFlow.tsx`.
+  - Verified green: 5 onboarding flow tests passed.
+  - Committed the task.
 
 COMMITS CREATED
 - 846aa94 chore: add expo-notifications and its Jest mock
@@ -36,25 +44,26 @@ COMMITS CREATED
 - d07a343 feat: add notification permission helper
 - 7c5617c docs: checkpoint Plan 7 handoff after notification helper
 - 0234d4a feat: add onboarding step content
+- e6a5e06 docs: checkpoint Plan 7 handoff after onboarding content
+- dd039f7 feat: add onboarding flow component
 
 VERIFICATION SO FAR
 - `npx jest`: 32 suites / 144 tests passed after Task 1.
 - `npx tsc --noEmit`: exit 0 after Task 1.
 - `npx jest src/lib/__tests__/notifications.test.ts`: 3 tests passed after Task 2.
 - `npx jest src/onboarding/__tests__/steps.test.ts`: 5 tests passed after Task 3.
+- `npx jest src/onboarding/__tests__/OnboardingFlow.test.tsx`: 5 tests passed after Task 4.
 
 IN-FLIGHT TASK
-Next task is Task 4: Onboarding flow component.
+Next task is Task 5: Deep-link configuration.
 Steps:
-1. Invoke/apply UI UX Pro Max guidance for the onboarding UI.
-2. Add `src/onboarding/__tests__/OnboardingFlow.test.tsx`.
-3. Run it and expect failure because `../OnboardingFlow` does not exist.
-4. Add `src/onboarding/OnboardingFlow.tsx`.
-5. Re-run focused test and expect 5 tests passing.
-6. Commit `feat: add onboarding flow component`.
+1. Add `src/nav/__tests__/linking.test.ts`.
+2. Run it and expect failure because `../linking` does not exist.
+3. Add `src/nav/linking.ts`.
+4. Re-run focused test and expect 3 tests passing.
+5. Commit `feat: add stillpoint:// deep-link configuration`.
 
 REMAINING PLAN 7 ROADMAP
-- T4 OnboardingFlow UI. Invoke/apply UI UX Pro Max guidance before this UI task.
 - T5 stillpoint:// deep-link config.
 - T6 App.tsx onboarding gate + RootNavigator linking.
 - T7 full verification: `npx jest`, `npx tsc --noEmit`, `npx expo export --platform ios --output-dir ./.tmp-export`, cleanup `.tmp-export`, `npx expo-doctor`; then merge to master and re-verify.
