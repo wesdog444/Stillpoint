@@ -33,3 +33,11 @@ export function getRecentIntentions(limit = 20): IntentionRow[] {
   );
   return result.rows as IntentionRow[];
 }
+
+/** Every saved intention-check reason, newest first. */
+export function getAllIntentions(): IntentionRow[] {
+  const result = getDatabase().execute(
+    'SELECT * FROM intentions ORDER BY created_at DESC, id DESC',
+  );
+  return result.rows as IntentionRow[];
+}
