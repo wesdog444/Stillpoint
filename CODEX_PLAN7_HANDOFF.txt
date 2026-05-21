@@ -43,6 +43,14 @@ SESSION SUMMARY
   - Added `src/nav/linking.ts` with `stillpoint://` prefixes and `sanitized/:siteKey` mapping.
   - Verified green: 3 linking tests passed.
   - Committed the task.
+- Task 6 completed:
+  - Updated `src/nav/RootNavigator.tsx` to pass the `stillpoint://` linking config to `NavigationContainer`.
+  - Updated `App.tsx` to show `OnboardingFlow` until `settingsStore.onboardingComplete` is true.
+  - Ran `npx tsc --noEmit`: exit 0.
+  - Ran `npx jest src/nav src/onboarding`; initially RootNavigator tests failed because React Navigation linking initializes asynchronously.
+  - Updated RootNavigator tests to use `findByTestId`/wait for Home before asserting tab labels/navigation.
+  - Re-ran `npx jest src/nav src/onboarding`: 6 suites / 22 tests passed.
+  - Committed the task.
 
 COMMITS CREATED
 - 846aa94 chore: add expo-notifications and its Jest mock
@@ -54,6 +62,8 @@ COMMITS CREATED
 - dd039f7 feat: add onboarding flow component
 - 95e3d2b docs: checkpoint Plan 7 handoff after onboarding flow
 - a24cd94 feat: add stillpoint:// deep-link configuration
+- eb8ac48 docs: checkpoint Plan 7 handoff after deep links
+- f334b93 feat: gate onboarding on first run and enable deep linking
 
 VERIFICATION SO FAR
 - `npx jest`: 32 suites / 144 tests passed after Task 1.
@@ -62,18 +72,20 @@ VERIFICATION SO FAR
 - `npx jest src/onboarding/__tests__/steps.test.ts`: 5 tests passed after Task 3.
 - `npx jest src/onboarding/__tests__/OnboardingFlow.test.tsx`: 5 tests passed after Task 4.
 - `npx jest src/nav/__tests__/linking.test.ts`: 3 tests passed after Task 5.
+- `npx tsc --noEmit`: exit 0 after Task 6.
+- `npx jest src/nav src/onboarding`: 6 suites / 22 tests passed after Task 6.
 
 IN-FLIGHT TASK
-Next task is Task 6: Wire onboarding gating and deep linking into the app.
+Next task is Task 7: Full-suite verification.
 Steps:
-1. Update `src/nav/RootNavigator.tsx` to pass `linking={linking}` into `NavigationContainer`.
-2. Update `App.tsx` to render `OnboardingFlow` until `settingsStore.onboardingComplete` is true.
-3. Run `npx tsc --noEmit`.
-4. Run `npx jest src/nav src/onboarding`.
-5. Commit `feat: gate onboarding on first run and enable deep linking`.
+1. Run `npx jest`.
+2. Run `npx tsc --noEmit`.
+3. Run `npx expo export --platform ios --output-dir ./.tmp-export`, then remove `.tmp-export`.
+4. Run `npx expo-doctor`.
+5. Update this handoff with final results and commit it.
+6. Merge `onboarding-deep-links` into master, re-run verification on master, delete the branch.
 
 REMAINING PLAN 7 ROADMAP
-- T6 App.tsx onboarding gate + RootNavigator linking.
 - T7 full verification: `npx jest`, `npx tsc --noEmit`, `npx expo export --platform ios --output-dir ./.tmp-export`, cleanup `.tmp-export`, `npx expo-doctor`; then merge to master and re-verify.
 
 PROJECT ROADMAP AFTER PLAN 7
