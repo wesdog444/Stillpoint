@@ -1,135 +1,142 @@
-Stillpoint handoff - v1.1 polish implemented
+Stillpoint handoff - v1.2 Social Mini-App revamp
 Date: 2026-05-21
-Current branch: codex/v1.1-polish
-
-READ THIS FIRST
-- This session implemented the user-requested v1.1 polish after the first real-device review.
-- The work is not yet merged at the moment this file is written; the expected finish path is:
-  commit -> merge to master -> push to GitHub -> wait for "Build unsigned IPA" to produce a fresh artifact.
-- Do not add native iOS Screen Time / Family Controls code. It requires Apple's restricted
-  com.apple.developer.family-controls entitlement and will not work in a Sideloadly Personal Edition build.
+Current branch: codex/v1.2-social-revamp
 
 SESSION SUMMARY
-The user approved a v1.1 polish pass after seeing the app run on an actual iPhone. They wanted:
-1. More enticing and interactive onboarding.
-2. A real stillpoint://breathe destination because the Shortcut route did not go anywhere.
-3. Screen Time permissions.
-4. A SocialLite-style Social tab that feels integrated and sanitized, not like a raw browser.
+- User reviewed v1.1 on-device and asked for a larger Social revamp:
+  - remove Instagram Reels/scroll trap more aggressively,
+  - keep logins remembered,
+  - fix the three-line toolbar,
+  - remove ads/suggested chrome and keep only a timer,
+  - revamp the placeholder Profile tab,
+  - make Shortcuts/Breathe behavior clearer,
+  - see whether Stillpoint can control Shortcuts automations,
+  - revamp the blank Blocks tab into the scheduler/control center,
+  - give recommendations before committing anything.
+- I invoked UI UX Pro Max and the brainstorming flow.
+- I offered the visual companion; user selected Option A: the "Sanitized Mini-App" shell.
+- I gave recommendations before committing:
+  - keep WebView as the engine but make Stillpoint own the shell,
+  - timer-only chrome,
+  - toolbar actions mapped to actual behavior,
+  - account manager instead of frown/report,
+  - Blocks as scheduler/control center,
+  - no programmatic Shortcuts automation toggling because iOS keeps those user-controlled.
+- User approved: "Yes go for it!"
+- I wrote:
+  - docs/superpowers/specs/2026-05-21-social-mini-app-revamp-design.md
+  - docs/superpowers/plans/2026-05-21-social-mini-app-revamp.md
+- I implemented the approved v1.2 scope using TDD.
 
-What I did:
-- Invoked the project-local UI UX Pro Max skill before UI work.
-- Checked Expo SDK 54 docs before coding.
-- Verified the Screen Time request against Apple's entitlement docs and kept it out of scope.
-- Used TDD:
-  - Added failing tests for Facebook/Snapchat sanitizer support.
-  - Added failing tests for SocialLite-style Social shell copy and per-site settings buttons.
-  - Added failing tests for WebView login persistence, top status chrome, applying-preferences overlay, and floating controls.
-  - Added failing tests for the stillpoint://breathe route and a new Breathe screen.
-  - Added failing tests for interactive onboarding site selection.
-- Implemented the v1.1 behavior and re-ran the tests.
+WHAT CHANGED
 
-IMPLEMENTED CHANGES
+Browser / Social mini-app shell
+- src/screens/BrowserScreen.tsx:
+  - Removed "Block these", "0 ads", and "0 suggested" from the top chrome.
+  - Top chrome now shows only a timer.
+  - Timer is computed from elapsed wall-clock time via a start timestamp, not a blind increment.
+  - Added persistent login props:
+    - sharedCookiesEnabled
+    - domStorageEnabled
+    - thirdPartyCookiesEnabled
+    - incognito={false}
+  - Added a destination rail for each social platform.
+  - Instagram destinations intentionally exclude Reels.
+  - Toolbar behavior now matches the user's request:
+    - Back calls WebView goBack.
+    - Home returns to the Stillpoint Social screen inside the app.
+    - Refresh calls WebView reload.
+    - Forward calls WebView goForward.
+    - Account opens an Account Manager overlay.
+  - Account Manager clarifies that logins are remembered by the site inside the persistent WebView and offers account/profile destinations.
 
-Onboarding
-- src/onboarding/OnboardingFlow.tsx now has an interactive "Choose your defaults" panel on the first step.
-- The picker includes Instagram, YouTube, X, TikTok, Facebook, and Snapchat.
-- Site chips are accessible buttons with selected state and 44px+ touch targets.
-- src/onboarding/steps.ts copy is more inviting and now honestly explains that Screen Time control requires Apple's restricted Family Controls entitlement, so Stillpoint Personal Edition uses Shortcuts redirects instead.
-- The existing guard that onboarding copy never says "block" still passes.
+Social destination model
+- src/social/destinations.ts:
+  - Adds platform-specific destinations for Instagram, YouTube, X, TikTok, Facebook, Snapchat.
+  - Keeps Breathe as a safe destination.
+  - Instagram destinations are Messages, Search, Profile, Account, Breathe; no Reels.
+- src/social/__tests__/destinations.test.ts:
+  - Verifies Instagram does not expose Reels.
 
-Breathe shortcut
-- Added src/screens/BreatheScreen.tsx.
-- It is a calm shortcut landing screen with a tappable breathing orb cycling Inhale -> Hold -> Exhale -> Rest.
-- Added Breathe as a hidden bottom-tab screen in src/nav/RootNavigator.tsx.
-- Added stillpoint://breathe in src/nav/linking.ts.
+Sanitizer
+- src/sanitizer/rules.ts:
+  - Strengthened Instagram selectors:
+    - a[href*="/reels/"]
+    - a[href*="/explore/"]
+    - svg[aria-label="Reels"]
+    - svg[aria-label="Explore"]
+    - div[aria-label*="Suggested"]
+    - main[role="main"] article
+    - section main article
+- src/sanitizer/injection.ts:
+  - Adds cleanStillpointSurfaces().
+  - Runs cleanup immediately and repeats with setInterval so dynamically inserted social surfaces are hidden after load.
 
-Social tab
-- src/screens/SocialScreen.tsx has been redesigned into a warm SocialLite-inspired surface:
-  - Title: "Stillpoint Social"
-  - Subtitle: "Focus forward"
-  - Rounded translucent site cards.
-  - App-style badges for Instagram, YouTube, X, TikTok, Facebook, Snapchat.
-  - BETA pills for the newer/less certain sites.
-  - Per-site settings buttons and chevrons.
-  - "Add apps to Home Screen" card.
-  - Bottom dots and share/help row.
-- This still uses the existing onOpenSite callback, so friction gates remain intact.
+Blocks tab
+- src/screens/BlocksScreen.tsx:
+  - Replaces placeholder with Redirect Scheduler / Control Center.
+  - Shows active hours examples.
+  - Shows stillpoint://breathe.
+  - Explains that iOS keeps automation toggles under user control.
+  - Gives sanitized social deep-link examples.
 
-Sanitized browser
-- src/screens/BrowserScreen.tsx now feels like an integrated sanitized app shell:
-  - Top status strip with elapsed time, "0 ads", "0 suggested".
-  - Blue "Block these" action, matching the user's SocialLite screenshots.
-  - Full-screen "Applying your preferences" transition overlay.
-  - Floating menu button.
-  - Expandable floating toolbar with back, home, refresh, forward, report, settings.
-  - WebView still has sharedCookiesEnabled and domStorageEnabled to preserve logins between visits.
-- No extra native dependencies were added.
+Profile tab
+- src/screens/ProfileScreen.tsx:
+  - Replaces placeholder with a real dashboard:
+    - Focused today
+    - Current streak
+    - Best streak
+    - Sanitized Social
+    - Shortcut routes
+    - Logins are remembered
+    - Personal Edition constraints
 
-Sanitizer rules
-- src/sanitizer/types.ts now supports:
-  instagram, youtube, x, tiktok, facebook, snapchat.
-- src/sanitizer/rules.ts adds first-pass Facebook and Snapchat rules.
-- YouTube selectors were expanded slightly to hide more recommendation surfaces.
-- Remember: site CSS selectors will drift and need upkeep.
+Testing support
+- jest.setup.ts:
+  - WebView mock now supports imperative ref methods: goBack, reload, goForward.
 
-VERIFICATION RESULTS FROM THIS SESSION
-- Targeted TDD suites:
-  npx jest src/sanitizer/__tests__/rules.test.ts src/screens/__tests__/SocialScreen.test.tsx src/screens/__tests__/BrowserScreen.test.tsx src/nav/__tests__/linking.test.ts src/onboarding/__tests__/OnboardingFlow.test.tsx src/screens/__tests__/BreatheScreen.test.tsx --runInBand
-  Result: 6 suites passed, 30 tests passed.
+Docs / local companion
+- .gitignore now ignores .superpowers/ visual companion session files.
+- Visual companion files were left local and ignored.
+
+VERIFICATION RESULTS
+- Targeted v1.2 tests:
+  npx jest src/ui/__tests__/sessionTimer.test.ts src/social/__tests__/destinations.test.ts src/screens/__tests__/BrowserScreen.test.tsx src/sanitizer/__tests__/injection.test.ts src/screens/__tests__/BlocksScreen.test.tsx src/screens/__tests__/ProfileScreen.test.tsx --runInBand
+  Result: 6 suites passed, 28 tests passed.
 
 - TypeScript:
   npx tsc --noEmit
   Result: exit 0.
 
-- Full tests:
+- Full Jest:
   npx jest --runInBand
-  Result: 37 suites passed, 169 tests passed.
+  Result: 41 suites passed, 184 tests passed.
 
 - Expo doctor:
   npx expo-doctor
-  Result: 17/17 checks passed.
+  Result: 18/18 checks passed.
 
-- iOS JS bundle export:
+- iOS export:
   npx expo export --platform ios
   Result: exit 0, exported to dist.
 
-STEP-BY-STEP IF CONTINUING FROM HERE
-1. Inspect git status. Expected branch: codex/v1.1-polish.
-2. Review changed files, especially:
-   - src/screens/SocialScreen.tsx
-   - src/screens/BrowserScreen.tsx
-   - src/screens/BreatheScreen.tsx
-   - src/onboarding/OnboardingFlow.tsx
-   - src/onboarding/steps.ts
-   - src/sanitizer/rules.ts
-   - src/nav/linking.ts
-   - src/nav/RootNavigator.tsx
-3. Re-run verification if any changes are made:
-   - npx tsc --noEmit
-   - npx jest --runInBand
-   - npx expo-doctor
-   - npx expo export --platform ios
-4. Commit the v1.1 polish.
-5. Merge codex/v1.1-polish into master.
-6. Push master to origin.
-7. Watch GitHub Actions for the "Build unsigned IPA" workflow.
-8. Once green, tell the user to open the successful run and download the workflow artifact.
+IMPORTANT LIMITATIONS / REALITY CHECKS
+- Stillpoint cannot programmatically create, enable, or disable the user's personal Shortcuts automations. The Shortcuts app exposes App Intents/App Shortcuts, but personal automation toggles stay under user control.
+- The social feature still uses WebView underneath. That is expected. The goal is a Stillpoint-owned mini-app shell and strong sanitization, not a native Instagram clone.
+- Instagram/YouTube/X/TikTok/Facebook/Snapchat selectors will drift over time. Reels hiding is stronger now, but real-device testing is still required.
+- Login persistence is configured, but the user should verify on device by logging into Instagram once, closing/reopening Stillpoint, and reopening Instagram.
 
-ROADMAP / REMAINING WORK
-- Real-device smoke test after the new IPA:
-  - Onboarding picker feels good on iPhone.
-  - stillpoint://breathe opens the Breathe screen from Shortcuts.
-  - Social cards open the right sites.
-  - WebView logins persist between visits.
-  - Floating toolbar does not cover critical site controls too badly.
-  - Sanitizer rules actually hide the expected first-pass surfaces.
-- Optional Plan 9:
-  - Swift App Intents. This needs a Mac/Xcode-side implementation and verification.
-- Optional future:
-  - Session-history list screen using getRecentSessions.
-  - Ongoing sanitizer selector maintenance.
-
-IMPORTANT CONSTRAINTS
-- Do not implement native Screen Time permissions in this sideloaded build.
-- It is okay and expected that the Social feature uses WebView. The product goal is custom integrated chrome and sanitization around the WebView, because Instagram/YouTube/X/etc. cannot be reimplemented natively.
-- Keep onboarding copy in the "sanitize/calm/redirect" language family. The existing test prevents the word "block" in onboarding copy.
+NEXT STEPS IF CONTINUING
+1. Inspect changed files.
+2. If no more edits are needed, commit v1.2.
+3. Merge to master.
+4. Push master to GitHub.
+5. Watch "Build unsigned IPA" workflow.
+6. User downloads the new artifact and sideloads it.
+7. Device smoke tests:
+   - Instagram Reels tab is hidden.
+   - Feed scrolling is reduced enough for the intended use.
+   - Login persists after closing/reopening.
+   - Toolbar Back/Home/Refresh/Forward/Account works.
+   - Blocks tab reads clearly as scheduler/control center.
+   - Profile tab is useful, not empty.

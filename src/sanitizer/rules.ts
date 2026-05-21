@@ -15,8 +15,15 @@ const RULES: Record<SiteKey, SanitizerRule> = {
     removed: ['Reels tab', 'Explore page', 'Suggested posts'],
     hideSelectors: [
       'a[href="/reels/"]',
+      'a[href*="/reels/"]',
       'a[href="/explore/"]',
+      'a[href*="/explore/"]',
       'div[aria-label="Explore"]',
+      'svg[aria-label="Reels"]',
+      'svg[aria-label="Explore"]',
+      'div[aria-label*="Suggested"]',
+      'main[role="main"] article',
+      'section main article',
     ],
   },
   youtube: {

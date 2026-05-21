@@ -6,69 +6,95 @@ import {
   ArrowLeft,
   ArrowRight,
   Clock3,
-  Frown,
   Home as HomeIcon,
   Menu,
   RotateCw,
   Settings,
   SlidersHorizontal,
+  UserRound,
   X as XIcon,
 } from 'lucide-react-native';
 import { useTheme } from '../theme/theme';
 import { getRule } from '../sanitizer/rules';
 import { buildInjection } from '../sanitizer/injection';
 import type { SiteKey } from '../sanitizer/types';
+import { getSocialDestinations } from '../social/destinations';
+import { formatElapsedSeconds } from '../ui/sessionTimer';
 
 type Props = {
   siteKey: SiteKey;
+  onReturnHome?: () => void;
 };
 
-export function BrowserScreen({ siteKey }: Props) {
+export function BrowserScreen({ siteKey, onReturnHome }: Props) {
   const theme = useTheme();
   const rule = getRule(siteKey);
   const injection = buildInjection(rule);
   const webViewRef = useRef<WebView>(null);
+  const startedAtRef = useRef(Date.now());
+  const [currentUrl, setCurrentUrl] = useState(rule.url);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [toolbarOpen, setToolbarOpen] = useState(false);
   const [applying, setApplying] = useState(true);
+  const [accountManagerOpen, setAccountManagerOpen] = useState(false);
+  const destinations = getSocialDestinations(siteKey);
 
   useEffect(() => {
-    const timer = setInterval(() => setElapsedSeconds((seconds) => seconds + 1), 1000);
+    const timer = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAtRef.current) / 1000));
+    }, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const elapsedLabel = `0:${String(elapsedSeconds).padStart(2, '0')}`;
+  const openUrl = (url: string) => {
+    setApplying(true);
+    setCurrentUrl(url);
+    setToolbarOpen(false);
+  };
 
   return (
-    <SafeAreaView
-      testID="screen-browser"
-      style={styles.safe}
-    >
+    <SafeAreaView testID="screen-browser" style={styles.safe}>
       <View style={styles.statusBar}>
-        <View style={styles.stats}>
+        <View style={styles.timerWrap}>
           <Clock3 size={19} color="#85858B" />
-          <Text style={[theme.typography.cardTitle, styles.statText]}>{elapsedLabel}</Text>
-          <Text style={[theme.typography.cardTitle, styles.dotText]}>·</Text>
-          <Text style={[theme.typography.cardTitle, styles.statText]}>0 ads</Text>
-          <Text style={[theme.typography.cardTitle, styles.dotText]}>·</Text>
-          <Text style={[theme.typography.cardTitle, styles.statText]}>0 suggested</Text>
+          <Text style={[theme.typography.cardTitle, styles.statText]}>
+            {formatElapsedSeconds(elapsedSeconds)}
+          </Text>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open sanitizer preferences"
-          hitSlop={8}
-          style={({ pressed }) => [styles.prefButton, { opacity: pressed ? 0.78 : 1 }]}
-        >
-          <Text style={[theme.typography.cardTitle, styles.prefText]}>Block these</Text>
-        </Pressable>
       </View>
+
+      <View style={styles.destinationRail}>
+        {destinations.map((destination) => (
+          <Pressable
+            key={destination.key}
+            accessibilityRole="button"
+            accessibilityLabel={`Open ${destination.label}`}
+            hitSlop={8}
+            onPress={() => {
+              if (destination.kind === 'breathe') {
+                onReturnHome?.();
+                return;
+              }
+              if (destination.url) openUrl(destination.url);
+            }}
+            style={({ pressed }) => [styles.destinationChip, { opacity: pressed ? 0.75 : 1 }]}
+          >
+            <Text style={[theme.typography.label, styles.destinationText]}>
+              {destination.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
       <View style={styles.browserPane}>
         <WebView
           ref={webViewRef}
-          source={{ uri: rule.url }}
+          source={{ uri: currentUrl }}
           injectedJavaScript={injection}
           sharedCookiesEnabled
           domStorageEnabled
+          thirdPartyCookiesEnabled
+          incognito={false}
           onLoadEnd={() => setApplying(false)}
           style={styles.webview}
         />
@@ -88,6 +114,7 @@ export function BrowserScreen({ siteKey }: Props) {
         >
           {toolbarOpen ? <XIcon size={33} color="#000000" /> : <Menu size={33} color="#000000" />}
         </Pressable>
+
         {toolbarOpen ? (
           <View testID="browser-floating-toolbar" style={styles.toolbar}>
             <Pressable
@@ -101,9 +128,9 @@ export function BrowserScreen({ siteKey }: Props) {
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Go to ${rule.displayName} home`}
+              accessibilityLabel="Return to Stillpoint Social"
               hitSlop={8}
-              onPress={() => webViewRef.current?.reload()}
+              onPress={() => onReturnHome?.()}
               style={styles.toolbarButton}
             >
               <HomeIcon size={30} color="#000000" />
@@ -128,11 +155,12 @@ export function BrowserScreen({ siteKey }: Props) {
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Report a stressful surface"
+              accessibilityLabel="Open account manager"
               hitSlop={8}
+              onPress={() => setAccountManagerOpen(true)}
               style={styles.toolbarButton}
             >
-              <Frown size={30} color="#000000" />
+              <UserRound size={30} color="#000000" />
             </Pressable>
             <View style={styles.toolbarDivider} />
             <Pressable
@@ -145,6 +173,7 @@ export function BrowserScreen({ siteKey }: Props) {
             </Pressable>
           </View>
         ) : null}
+
         {applying ? (
           <View pointerEvents="none" style={styles.applyingOverlay}>
             <View style={styles.applyingIcon}>
@@ -166,8 +195,44 @@ export function BrowserScreen({ siteKey }: Props) {
             </View>
           </View>
         ) : null}
+
+        {accountManagerOpen ? (
+          <View testID="account-manager" style={styles.accountSheet}>
+            <View style={styles.accountCard}>
+              <Text style={[theme.typography.cardTitle, styles.accountTitle]}>
+                Account manager
+              </Text>
+              <Text style={[theme.typography.body, styles.accountBody]}>
+                Logins are remembered by {rule.displayName} inside this WebView. Use these destinations to switch accounts, edit profile details, or return to login.
+              </Text>
+              {destinations
+                .filter((destination) => destination.key === 'account' || destination.key === 'profile')
+                .map((destination) => (
+                  <Pressable
+                    key={`account-${destination.key}`}
+                    accessibilityRole="button"
+                    onPress={() => {
+                      if (destination.url) openUrl(destination.url);
+                      setAccountManagerOpen(false);
+                    }}
+                    style={styles.accountAction}
+                  >
+                    <Text style={[theme.typography.label, styles.accountActionText]}>
+                      {destination.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setAccountManagerOpen(false)}
+                style={styles.accountClose}
+              >
+                <Text style={[theme.typography.label, styles.accountCloseText]}>Close</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
       </View>
-      {/* sharedCookiesEnabled and domStorageEnabled keep site login sessions persisted. */}
     </SafeAreaView>
   );
 }
@@ -175,7 +240,7 @@ export function BrowserScreen({ siteKey }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
   statusBar: {
-    minHeight: 78,
+    minHeight: 56,
     paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
@@ -184,24 +249,33 @@ const styles = StyleSheet.create({
     borderBottomColor: '#D7D7D7',
     backgroundColor: '#FFFFFF',
   },
-  stats: { flexDirection: 'row', alignItems: 'center', gap: 7, flexShrink: 1 },
+  timerWrap: { flexDirection: 'row', alignItems: 'center', gap: 7, flexShrink: 1 },
   statText: { color: '#111111', fontSize: 18 },
-  dotText: { color: '#767676', fontSize: 18 },
-  prefButton: {
-    minHeight: 48,
-    borderRadius: 14,
-    paddingHorizontal: 18,
+  destinationRail: {
+    minHeight: 62,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E4E4E4',
+  },
+  destinationChip: {
+    minHeight: 42,
+    borderRadius: 21,
+    paddingHorizontal: 13,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0A95EA',
+    backgroundColor: '#F1F2F4',
   },
-  prefText: { color: '#FFFFFF' },
+  destinationText: { color: '#161616' },
   browserPane: { flex: 1, overflow: 'hidden' },
   webview: { flex: 1 },
   menuButton: {
     position: 'absolute',
     right: 22,
-    top: 34,
+    top: 22,
     width: 72,
     height: 72,
     borderRadius: 36,
@@ -218,7 +292,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 34,
     right: 34,
-    top: 190,
+    top: 156,
     minHeight: 74,
     borderRadius: 37,
     backgroundColor: 'rgba(238,240,238,0.88)',
@@ -234,6 +308,30 @@ const styles = StyleSheet.create({
   },
   toolbarButton: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   toolbarDivider: { width: 1, height: 36, backgroundColor: 'rgba(0,0,0,0.12)', marginHorizontal: 4 },
+  accountSheet: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.24)',
+    justifyContent: 'flex-end',
+    padding: 18,
+  },
+  accountCard: {
+    borderRadius: 26,
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    gap: 12,
+  },
+  accountTitle: { color: '#111111' },
+  accountBody: { color: '#5F6065' },
+  accountAction: {
+    minHeight: 48,
+    borderRadius: 14,
+    backgroundColor: '#F1F2F4',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  accountActionText: { color: '#111111' },
+  accountClose: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  accountCloseText: { color: '#777777' },
   applyingOverlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',

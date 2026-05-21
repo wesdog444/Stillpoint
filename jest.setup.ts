@@ -90,9 +90,16 @@ jest.mock('@op-engineering/op-sqlite', () => {
 jest.mock('react-native-webview', () => {
   const React = require('react');
   const { View } = require('react-native');
-  const WebView = (props: Record<string, unknown>) =>
-    React.createElement(View, { testID: 'mock-webview', ...props });
-  return { WebView, default: WebView };
+  const __webViewMethods = {
+    goBack: jest.fn(),
+    reload: jest.fn(),
+    goForward: jest.fn(),
+  };
+  const WebView = React.forwardRef((props: Record<string, unknown>, ref: unknown) => {
+    React.useImperativeHandle(ref, () => __webViewMethods);
+    return React.createElement(View, { testID: 'mock-webview', ...props });
+  });
+  return { WebView, default: WebView, __webViewMethods };
 });
 
 // --- expo-notifications mock: permission request resolves to "granted" ---

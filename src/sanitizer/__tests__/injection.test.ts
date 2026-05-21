@@ -35,4 +35,17 @@ describe('buildInjection', () => {
     const js = buildInjection(getRule('x'));
     expect(js).toContain('(function()');
   });
+
+  it('runs repeated cleanup for dynamic social pages', () => {
+    const js = buildInjection(getRule('instagram'));
+    expect(js).toContain('setInterval(cleanStillpointSurfaces');
+    expect(js).toContain('cleanStillpointSurfaces();');
+  });
+
+  it('includes stronger instagram reels and feed selectors', () => {
+    const rule = getRule('instagram');
+    expect(rule.hideSelectors).toContain('a[href*="/reels/"]');
+    expect(rule.hideSelectors).toContain('main[role="main"] article');
+    expect(rule.hideSelectors.join(' ')).toContain('Suggested');
+  });
 });

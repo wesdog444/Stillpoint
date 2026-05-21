@@ -19,6 +19,19 @@ export function buildInjection(rule: SanitizerRule): string {
     style.setAttribute('data-stillpoint', 'sanitizer');
     style.appendChild(document.createTextNode(css));
     (document.head || document.documentElement).appendChild(style);
+    function cleanStillpointSurfaces() {
+      selectors.forEach(function(selector) {
+        try {
+          document.querySelectorAll(selector).forEach(function(node) {
+            node.setAttribute('data-stillpoint-hidden', 'true');
+            node.style.setProperty('display', 'none', 'important');
+            node.style.setProperty('visibility', 'hidden', 'important');
+          });
+        } catch (e) {}
+      });
+    }
+    cleanStillpointSurfaces();
+    setInterval(cleanStillpointSurfaces, 1200);
     ${ruleScript}
   } catch (e) {}
 })();

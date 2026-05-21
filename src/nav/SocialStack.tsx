@@ -58,7 +58,9 @@ export function SocialStack() {
         )}
       </Stack.Screen>
       <Stack.Screen name="Browser">
-        {({ route }) => <BrowserScreen siteKey={route.params.siteKey} />}
+        {({ navigation, route }) => (
+          <BrowserScreen siteKey={route.params.siteKey} onReturnHome={() => navigation.popToTop()} />
+        )}
       </Stack.Screen>
     </Stack.Navigator>
   );

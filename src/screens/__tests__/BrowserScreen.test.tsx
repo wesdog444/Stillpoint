@@ -1,10 +1,24 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { BrowserScreen } from '../BrowserScreen';
 import { getRule } from '../../sanitizer/rules';
 import { buildInjection } from '../../sanitizer/injection';
 
+const { __webViewMethods } = require('react-native-webview');
+
 describe('BrowserScreen', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-05-21T12:00:00.000Z'));
+    __webViewMethods.goBack.mockClear();
+    __webViewMethods.reload.mockClear();
+    __webViewMethods.goForward.mockClear();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('renders the mocked WebView', () => {
     render(<BrowserScreen siteKey="instagram" />);
     expect(screen.getByTestId('mock-webview')).toBeTruthy();
@@ -27,11 +41,21 @@ describe('BrowserScreen', () => {
     expect(screen.getByText('TikTok')).toBeTruthy();
   });
 
-  it('renders a SocialLite-style sanitizer status bar', () => {
+  it('renders a timer-only top bar', () => {
     render(<BrowserScreen siteKey="instagram" />);
-    expect(screen.getByText('0 ads')).toBeTruthy();
-    expect(screen.getByText('0 suggested')).toBeTruthy();
-    expect(screen.getByRole('button', { name: /open sanitizer preferences/i })).toBeTruthy();
+    expect(screen.getByText('0:00')).toBeTruthy();
+    expect(screen.queryByText('0 ads')).toBeNull();
+    expect(screen.queryByText('0 suggested')).toBeNull();
+    expect(screen.queryByText('Block these')).toBeNull();
+  });
+
+  it('keeps the timer stable from elapsed wall-clock time', () => {
+    render(<BrowserScreen siteKey="instagram" />);
+    jest.setSystemTime(new Date('2026-05-21T12:01:05.000Z'));
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    expect(screen.getByText('1:06')).toBeTruthy();
   });
 
   it('shows the applying preferences overlay before the site settles', () => {
@@ -45,11 +69,46 @@ describe('BrowserScreen', () => {
     const webview = screen.getByTestId('mock-webview');
     expect(webview.props.sharedCookiesEnabled).toBe(true);
     expect(webview.props.domStorageEnabled).toBe(true);
+    expect(webview.props.thirdPartyCookiesEnabled).toBe(true);
+    expect(webview.props.incognito).toBe(false);
   });
 
   it('opens the floating browser controls', () => {
     render(<BrowserScreen siteKey="instagram" />);
     fireEvent.press(screen.getByTestId('browser-toolbar-toggle'));
     expect(screen.getByTestId('browser-floating-toolbar')).toBeTruthy();
+  });
+
+  it('wires toolbar actions to the WebView and Stillpoint shell', () => {
+    const onReturnHome = jest.fn();
+    render(<BrowserScreen siteKey="instagram" onReturnHome={onReturnHome} />);
+    fireEvent.press(screen.getByTestId('browser-toolbar-toggle'));
+
+    fireEvent.press(screen.getByRole('button', { name: /go back/i }));
+    expect(__webViewMethods.goBack).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(screen.getByRole('button', { name: /return to stillpoint social/i }));
+    expect(onReturnHome).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(screen.getByRole('button', { name: /refresh/i }));
+    expect(__webViewMethods.reload).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(screen.getByRole('button', { name: /go forward/i }));
+    expect(__webViewMethods.goForward).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens an account manager from the account toolbar action', () => {
+    render(<BrowserScreen siteKey="instagram" />);
+    fireEvent.press(screen.getByTestId('browser-toolbar-toggle'));
+    fireEvent.press(screen.getByRole('button', { name: /open account manager/i }));
+    expect(screen.getByTestId('account-manager')).toBeTruthy();
+    expect(screen.getByText('Account manager')).toBeTruthy();
+  });
+
+  it('renders destination buttons that avoid the reels tab', () => {
+    render(<BrowserScreen siteKey="instagram" />);
+    expect(screen.getByText('Messages')).toBeTruthy();
+    expect(screen.getByText('Search')).toBeTruthy();
+    expect(screen.queryByText('Reels')).toBeNull();
   });
 });
