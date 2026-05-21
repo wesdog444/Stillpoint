@@ -2,8 +2,10 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { initDatabase } from '../../data/database';
 import { RootNavigator } from '../RootNavigator';
+import type { SiteKey } from '../../sanitizer/types';
 
 const opSqlite = require('@op-engineering/op-sqlite');
+const SOCIAL_SITE_KEYS: SiteKey[] = ['instagram', 'youtube', 'x', 'tiktok', 'facebook', 'snapchat'];
 
 describe('RootNavigator', () => {
   beforeEach(() => {
@@ -31,12 +33,14 @@ describe('RootNavigator', () => {
     expect(screen.getByTestId('screen-stats')).toBeTruthy();
   });
 
-  it('hides the bottom tabs while the social browser is focused', async () => {
+  it.each(SOCIAL_SITE_KEYS)('hides the bottom tabs while %s is focused in the social browser', async (siteKey) => {
     render(<RootNavigator />);
     await screen.findByTestId('screen-home');
     fireEvent.press(screen.getByText('Social'));
-    fireEvent.press(await screen.findByTestId('site-card-instagram'));
+    fireEvent.press(await screen.findByTestId(`site-card-${siteKey}`));
     expect(await screen.findByTestId('screen-browser')).toBeTruthy();
+    expect(screen.queryByText('Home')).toBeNull();
+    expect(screen.queryByText('Social')).toBeNull();
     expect(screen.queryByText('Blocks')).toBeNull();
     expect(screen.queryByText('Stats')).toBeNull();
     expect(screen.queryByText('Profile')).toBeNull();

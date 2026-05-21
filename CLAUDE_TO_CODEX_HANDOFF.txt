@@ -1,3 +1,68 @@
+Stillpoint handoff - all social sites fullscreen browser guarantee
+Date: 2026-05-21
+Current branch: codex/all-social-fullscreen
+
+SESSION SUMMARY
+- User asked to apply the same "whole new tab" behavior to every social website:
+  - Instagram, YouTube, X, TikTok, Facebook, and Snapchat should not show the Stillpoint bottom menu while opened.
+  - The hamburger menu remains the only way to return to Stillpoint Social from inside a site.
+- The runtime code path was already shared through `BrowserScreen` and `SocialStack`, so the fix from the previous session applied generically.
+- This session made that behavior explicit and protected by tests across all configured social destinations.
+- UI UX Pro Max was consulted for React Native navigation/fullscreen guidance, and Expo SDK 54 docs were checked before editing.
+
+WHAT CHANGED IN THIS SESSION
+- RootNavigator tests:
+  - Replaced the Instagram-only bottom-tab-hidden test with a parameterized test over:
+    - instagram
+    - youtube
+    - x
+    - tiktok
+    - facebook
+    - snapchat
+  - Each site now proves that Home/Social/Blocks/Stats/Profile tab labels are absent while the browser is focused.
+- SocialStack tests:
+  - Replaced the Instagram-only "BrowserScreen owns the shell" test with the same all-site parameterized coverage.
+  - Each site now proves:
+    - BrowserScreen is visible.
+    - Stillpoint Social is not visible.
+    - The hamburger control is present.
+
+VERIFICATION THIS SESSION
+- Targeted tests:
+  npx jest src/nav/__tests__/RootNavigator.test.tsx src/nav/__tests__/SocialStack.test.tsx src/screens/__tests__/BrowserScreen.test.tsx --runInBand
+  Result: 3 suites passed, 32 tests passed.
+- TypeScript:
+  npx tsc --noEmit
+  Result: exit 0.
+- Full Jest:
+  npx jest --runInBand
+  Result: 41 suites passed, 202 tests passed.
+- Expo Doctor:
+  npx expo-doctor
+  Result: 18/18 checks passed.
+- iOS export:
+  npx expo export --platform ios
+  Result: exit 0.
+
+NEXT DEVICE TEST
+1. Install the fresh IPA.
+2. Open Stillpoint > Social.
+3. Open each site:
+   - Instagram
+   - YouTube
+   - X
+   - TikTok
+   - Facebook
+   - Snapchat
+4. Expected for every site:
+   - No Stillpoint bottom tab bar.
+   - No Stillpoint header above the WebView.
+   - Timer appears as the floating top-left browser overlay.
+   - Hamburger opens controls.
+   - Hamburger toolbar Home returns to Stillpoint Social.
+
+---
+
 Stillpoint handoff - browser standalone tab overlay polish
 Date: 2026-05-21
 Current branch: codex/browser-tab-overlay-timer

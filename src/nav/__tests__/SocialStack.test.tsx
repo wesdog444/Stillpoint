@@ -5,8 +5,11 @@ import { initDatabase } from '../../data/database';
 import { SocialStack } from '../SocialStack';
 import { useSessionStore } from '../../state/sessionStore';
 import { usePresetStore } from '../../state/presetStore';
+import type { SiteKey } from '../../sanitizer/types';
 
 jest.mock('@op-engineering/op-sqlite');
+
+const SOCIAL_SITE_KEYS: SiteKey[] = ['instagram', 'youtube', 'x', 'tiktok', 'facebook', 'snapchat'];
 
 function renderStack() {
   return render(
@@ -37,9 +40,9 @@ describe('SocialStack', () => {
     expect(screen.getByTestId('mock-webview')).toBeTruthy();
   });
 
-  it('keeps BrowserScreen as the only visible app shell when a site is open', () => {
+  it.each(SOCIAL_SITE_KEYS)('keeps BrowserScreen as the only visible app shell when %s is open', (siteKey) => {
     renderStack();
-    fireEvent.press(screen.getByTestId('site-card-instagram'));
+    fireEvent.press(screen.getByTestId(`site-card-${siteKey}`));
     expect(screen.getByTestId('screen-browser')).toBeTruthy();
     expect(screen.queryByText('Stillpoint Social')).toBeNull();
     expect(screen.getByTestId('browser-toolbar-toggle')).toBeTruthy();
