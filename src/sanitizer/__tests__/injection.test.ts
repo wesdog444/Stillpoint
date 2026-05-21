@@ -48,4 +48,19 @@ describe('buildInjection', () => {
     expect(rule.hideSelectors).toContain('main[role="main"] article');
     expect(rule.hideSelectors.join(' ')).toContain('Suggested');
   });
+
+  it('injects text-label blocking for strict purpose mode', () => {
+    const js = buildInjection(getRule('youtube'));
+    expect(js).toContain('textBlocklist');
+    expect(js).toContain('hideByStillpointLabel');
+    expect(js).toContain('closest');
+    expect(js).toContain('Shorts');
+  });
+
+  it('injects video autoplay disabling for strict sites', () => {
+    const js = buildInjection(getRule('tiktok'));
+    expect(js).toContain('disableStillpointVideos');
+    expect(js).toContain('autoplay');
+    expect(js).toContain('pause()');
+  });
 });

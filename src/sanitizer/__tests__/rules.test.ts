@@ -13,6 +13,7 @@ describe('sanitizer rules', () => {
       expect(rule.displayName.length).toBeGreaterThan(0);
       expect(rule.removed.length).toBeGreaterThan(0);
       expect(rule.hideSelectors.length).toBeGreaterThan(0);
+      expect(rule.textBlocklist.length).toBeGreaterThan(0);
     }
   });
 
@@ -24,6 +25,28 @@ describe('sanitizer rules', () => {
     const rule = getRule('instagram');
     expect(rule.removed.join(' ').toLowerCase()).toContain('reels');
     expect(rule.removed.join(' ').toLowerCase()).toContain('explore');
+  });
+
+  it('the youtube rule targets Shorts, recommendations, comments, and autoplay', () => {
+    const rule = getRule('youtube');
+    expect(rule.textBlocklist).toEqual(expect.arrayContaining(['Shorts', 'Recommended', 'Autoplay']));
+    expect(rule.hideSelectors).toEqual(expect.arrayContaining([
+      'a[href*="/shorts/"]',
+      'ytd-comments',
+      '.ytp-autonav-toggle-button',
+    ]));
+    expect(rule.disableVideoAutoplay).toBe(true);
+  });
+
+  it('the tiktok rule targets For You, Discover, and autoplay feed surfaces', () => {
+    const rule = getRule('tiktok');
+    expect(rule.textBlocklist).toEqual(expect.arrayContaining(['For You', 'Discover', 'Suggested']));
+    expect(rule.hideSelectors).toEqual(expect.arrayContaining([
+      'a[href*="/foryou"]',
+      '[data-e2e="recommend-list-item-container"]',
+      '[data-e2e="feed-video"]',
+    ]));
+    expect(rule.disableVideoAutoplay).toBe(true);
   });
 
   it('getRule throws for an unknown key', () => {

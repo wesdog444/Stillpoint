@@ -1,108 +1,53 @@
-Stillpoint handoff - v1.2 Social Mini-App revamp
+Stillpoint handoff - Strict Purpose Mode sanitizer
 Date: 2026-05-21
-Current branch: codex/v1.2-social-revamp
+Current branch: codex/strict-sanitizer
 
 SESSION SUMMARY
-- User reviewed v1.1 on-device and asked for a larger Social revamp:
-  - remove Instagram Reels/scroll trap more aggressively,
-  - keep logins remembered,
-  - fix the three-line toolbar,
-  - remove ads/suggested chrome and keep only a timer,
-  - revamp the placeholder Profile tab,
-  - make Shortcuts/Breathe behavior clearer,
-  - see whether Stillpoint can control Shortcuts automations,
-  - revamp the blank Blocks tab into the scheduler/control center,
-  - give recommendations before committing anything.
-- I invoked UI UX Pro Max and the brainstorming flow.
-- I offered the visual companion; user selected Option A: the "Sanitized Mini-App" shell.
-- I gave recommendations before committing:
-  - keep WebView as the engine but make Stillpoint own the shell,
-  - timer-only chrome,
-  - toolbar actions mapped to actual behavior,
-  - account manager instead of frown/report,
-  - Blocks as scheduler/control center,
-  - no programmatic Shortcuts automation toggling because iOS keeps those user-controlled.
-- User approved: "Yes go for it!"
-- I wrote:
-  - docs/superpowers/specs/2026-05-21-social-mini-app-revamp-design.md
-  - docs/superpowers/plans/2026-05-21-social-mini-app-revamp.md
-- I implemented the approved v1.2 scope using TDD.
+- User asked for a stricter sanitizer for all supported apps, specifically including YouTube and TikTok.
+- I recommended a Strict Purpose Mode pass:
+  - stronger CSS selectors,
+  - text-label blocking for labels like Reels, Shorts, For You, Discover, Suggested, Recommended, Trending,
+  - repeated cleanup for dynamic pages,
+  - autoplay/video disabling.
+- User approved: "Yes lets do it!"
+- Implemented the strict sanitizer changes test-first.
 
 WHAT CHANGED
 
-Browser / Social mini-app shell
-- src/screens/BrowserScreen.tsx:
-  - Removed "Block these", "0 ads", and "0 suggested" from the top chrome.
-  - Top chrome now shows only a timer.
-  - Timer is computed from elapsed wall-clock time via a start timestamp, not a blind increment.
-  - Added persistent login props:
-    - sharedCookiesEnabled
-    - domStorageEnabled
-    - thirdPartyCookiesEnabled
-    - incognito={false}
-  - Added a destination rail for each social platform.
-  - Instagram destinations intentionally exclude Reels.
-  - Toolbar behavior now matches the user's request:
-    - Back calls WebView goBack.
-    - Home returns to the Stillpoint Social screen inside the app.
-    - Refresh calls WebView reload.
-    - Forward calls WebView goForward.
-    - Account opens an Account Manager overlay.
-  - Account Manager clarifies that logins are remembered by the site inside the persistent WebView and offers account/profile destinations.
+Rule model
+- src/sanitizer/types.ts:
+  - Added `textBlocklist: string[]`.
+  - Added optional `disableVideoAutoplay?: boolean`.
 
-Social destination model
-- src/social/destinations.ts:
-  - Adds platform-specific destinations for Instagram, YouTube, X, TikTok, Facebook, Snapchat.
-  - Keeps Breathe as a safe destination.
-  - Instagram destinations are Messages, Search, Profile, Account, Breathe; no Reels.
-- src/social/__tests__/destinations.test.ts:
-  - Verifies Instagram does not expose Reels.
-
-Sanitizer
-- src/sanitizer/rules.ts:
-  - Strengthened Instagram selectors:
-    - a[href*="/reels/"]
-    - a[href*="/explore/"]
-    - svg[aria-label="Reels"]
-    - svg[aria-label="Explore"]
-    - div[aria-label*="Suggested"]
-    - main[role="main"] article
-    - section main article
+Injector
 - src/sanitizer/injection.ts:
-  - Adds cleanStillpointSurfaces().
-  - Runs cleanup immediately and repeats with setInterval so dynamically inserted social surfaces are hidden after load.
+  - Builds a `textBlocklist` array into the injected WebView script.
+  - Adds `hideByStillpointLabel()` to scan visible labels and hide the nearest clickable/card/nav surface.
+  - Adds `disableStillpointVideos()` to pause videos, mute them, remove autoplay, and set autoplay false.
+  - Calls these inside the existing repeated cleanup loop so dynamic content gets re-sanitized after load.
 
-Blocks tab
-- src/screens/BlocksScreen.tsx:
-  - Replaces placeholder with Redirect Scheduler / Control Center.
-  - Shows active hours examples.
-  - Shows stillpoint://breathe.
-  - Explains that iOS keeps automation toggles under user control.
-  - Gives sanitized social deep-link examples.
+Rules
+- src/sanitizer/rules.ts:
+  - Instagram: stricter Reels/Explore/Suggested/feed selectors plus text labels.
+  - YouTube: stricter Shorts/recommendations/watch-next/comments/end-screen/autoplay selectors plus labels and video disabling.
+  - X: stricter Explore/Trending/Who to follow/sidebar selectors plus labels and video disabling.
+  - TikTok: stricter For You/Explore/Discover/feed/suggested selectors plus labels and video disabling.
+  - Facebook: stricter Reels/Watch/Stories/Marketplace/feed selectors plus labels and video disabling.
+  - Snapchat: stricter Spotlight/Discover/Suggested selectors plus labels and video disabling.
 
-Profile tab
-- src/screens/ProfileScreen.tsx:
-  - Replaces placeholder with a real dashboard:
-    - Focused today
-    - Current streak
-    - Best streak
-    - Sanitized Social
-    - Shortcut routes
-    - Logins are remembered
-    - Personal Edition constraints
-
-Testing support
-- jest.setup.ts:
-  - WebView mock now supports imperative ref methods: goBack, reload, goForward.
-
-Docs / local companion
-- .gitignore now ignores .superpowers/ visual companion session files.
-- Visual companion files were left local and ignored.
+Tests
+- src/sanitizer/__tests__/rules.test.ts:
+  - Verifies every rule has textBlocklist.
+  - Verifies YouTube strict selectors/text labels/autoplay disabling.
+  - Verifies TikTok strict selectors/text labels/autoplay disabling.
+- src/sanitizer/__tests__/injection.test.ts:
+  - Verifies text label blocking is injected.
+  - Verifies video disabling is injected.
 
 VERIFICATION RESULTS
-- Targeted v1.2 tests:
-  npx jest src/ui/__tests__/sessionTimer.test.ts src/social/__tests__/destinations.test.ts src/screens/__tests__/BrowserScreen.test.tsx src/sanitizer/__tests__/injection.test.ts src/screens/__tests__/BlocksScreen.test.tsx src/screens/__tests__/ProfileScreen.test.tsx --runInBand
-  Result: 6 suites passed, 28 tests passed.
+- Targeted sanitizer tests:
+  npx jest src/sanitizer/__tests__/rules.test.ts src/sanitizer/__tests__/injection.test.ts --runInBand
+  Result: 2 suites passed, 16 tests passed.
 
 - TypeScript:
   npx tsc --noEmit
@@ -110,7 +55,7 @@ VERIFICATION RESULTS
 
 - Full Jest:
   npx jest --runInBand
-  Result: 41 suites passed, 184 tests passed.
+  Result: 41 suites passed, 188 tests passed.
 
 - Expo doctor:
   npx expo-doctor
@@ -120,23 +65,11 @@ VERIFICATION RESULTS
   npx expo export --platform ios
   Result: exit 0, exported to dist.
 
-IMPORTANT LIMITATIONS / REALITY CHECKS
-- Stillpoint cannot programmatically create, enable, or disable the user's personal Shortcuts automations. The Shortcuts app exposes App Intents/App Shortcuts, but personal automation toggles stay under user control.
-- The social feature still uses WebView underneath. That is expected. The goal is a Stillpoint-owned mini-app shell and strong sanitization, not a native Instagram clone.
-- Instagram/YouTube/X/TikTok/Facebook/Snapchat selectors will drift over time. Reels hiding is stronger now, but real-device testing is still required.
-- Login persistence is configured, but the user should verify on device by logging into Instagram once, closing/reopening Stillpoint, and reopening Instagram.
+REAL-DEVICE TESTING NEEDED
+- Instagram: confirm Reels and Explore are gone or inaccessible.
+- YouTube: confirm Shorts, comments, recommended/watch-next, and autoplay are hidden/disabled without breaking subscriptions/search/account.
+- TikTok: confirm For You/Discover/feed surfaces are suppressed without breaking messages/profile/account.
+- X/Facebook/Snapchat: confirm strict surfaces are calmer and tune selectors as needed.
 
-NEXT STEPS IF CONTINUING
-1. Inspect changed files.
-2. If no more edits are needed, commit v1.2.
-3. Merge to master.
-4. Push master to GitHub.
-5. Watch "Build unsigned IPA" workflow.
-6. User downloads the new artifact and sideloads it.
-7. Device smoke tests:
-   - Instagram Reels tab is hidden.
-   - Feed scrolling is reduced enough for the intended use.
-   - Login persists after closing/reopening.
-   - Toolbar Back/Home/Refresh/Forward/Account works.
-   - Blocks tab reads clearly as scheduler/control center.
-   - Profile tab is useful, not empty.
+KNOWN RISK
+- Strict mode may hide too much on some site revisions. That is an acceptable first tradeoff for Stillpoint, but the exact selectors will need real-device tuning.
