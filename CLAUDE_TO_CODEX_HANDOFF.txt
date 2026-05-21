@@ -1,3 +1,68 @@
+Stillpoint handoff - browser standalone tab overlay polish
+Date: 2026-05-21
+Current branch: codex/browser-tab-overlay-timer
+
+SESSION SUMMARY
+- User clarified the desired behavior after the first fullscreen/Reels fix:
+  - Opening Instagram from Stillpoint should feel like opening a whole new tab/app surface.
+  - The Stillpoint bottom tab bar must not be visible while Instagram is open.
+  - The only in-app way back should be the hamburger menu, using its Home button to return to Stillpoint Social.
+  - The session timer should be integrated into the website view at the top-left instead of living in a separate Stillpoint header.
+- UI UX Pro Max was consulted before this UI change. Expo SDK 54 docs were checked before editing.
+
+WHAT CHANGED IN THIS SESSION
+- BrowserScreen:
+  - Removed the separate top timer/status header from above the WebView.
+  - Added `browser-timer-overlay`, a small floating timer chip inside the browser pane at the top-left.
+  - Kept the hamburger menu as the only visible Stillpoint control for leaving the social site.
+  - Gave timer/menu/toolbar explicit z-index layering so they stay above the WebView while the loading overlay stays below them.
+- SocialStack:
+  - Added a focused Browser route wrapper that explicitly hides the parent tab bar when Browser is focused.
+  - Restores the parent tab bar styling when leaving Browser.
+  - This reinforces the RootNavigator route-based tab hiding and helps on real devices where route-state propagation can lag.
+- Tests:
+  - BrowserScreen now asserts that the timer lives in `browser-timer-overlay`.
+  - BrowserScreen asserts the WebView owns the screen instead of a separate site header.
+  - SocialStack asserts BrowserScreen is the only visible app shell after opening Instagram.
+
+VERIFICATION THIS SESSION
+- Targeted tests:
+  npx jest src/screens/__tests__/BrowserScreen.test.tsx src/nav/__tests__/SocialStack.test.tsx src/nav/__tests__/RootNavigator.test.tsx --runInBand
+  Result: 3 suites passed, 22 tests passed.
+- TypeScript:
+  npx tsc --noEmit
+  Result: exit 0.
+- Full Jest:
+  npx jest --runInBand
+  Result: 41 suites passed, 192 tests passed.
+- Expo Doctor:
+  npx expo-doctor
+  Result: 18/18 checks passed.
+- iOS export:
+  npx expo export --platform ios
+  Result: exit 0.
+
+NEXT STEPS IF RESUMING
+1. Inspect the working tree on branch `codex/browser-tab-overlay-timer`.
+2. Run `git diff --check`.
+3. Commit the BrowserScreen/SocialStack/test/handoff changes.
+4. Merge to master and push.
+5. Confirm the GitHub Actions IPA workflow succeeds.
+6. Device-test Instagram:
+   - No Stillpoint bottom tab bar.
+   - No Stillpoint header above the WebView.
+   - Timer appears as a floating top-left chip inside the browser surface.
+   - Hamburger opens controls; Home returns to Stillpoint Social.
+   - Instagram Reels nav remains removed.
+
+ROADMAP / OPEN ITEMS
+- Device-test sanitized login persistence for Instagram, YouTube, X, TikTok, Facebook, and Snapchat.
+- Keep sanitizer selectors updated as the sites change.
+- If Reels still appears on-device, inspect the live mobile Instagram DOM with Safari Web Inspector on a Mac and add the exact selector variant.
+- Optional future work: native Swift App Intents for deeper Shortcuts integration.
+
+---
+
 Stillpoint handoff - Instagram fullscreen/Reels bug fix
 Date: 2026-05-21
 Current branch: codex/social-fullscreen-reels-fix

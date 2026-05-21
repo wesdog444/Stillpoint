@@ -46,15 +46,6 @@ export function BrowserScreen({ siteKey, onReturnHome }: Props) {
 
   return (
     <SafeAreaView testID="screen-browser" style={styles.safe}>
-      <View style={styles.statusBar}>
-        <View style={styles.timerWrap}>
-          <Clock3 size={19} color="#85858B" />
-          <Text style={[theme.typography.cardTitle, styles.statText]}>
-            {formatElapsedSeconds(elapsedSeconds)}
-          </Text>
-        </View>
-      </View>
-
       <View style={styles.browserPane}>
         <WebView
           ref={webViewRef}
@@ -68,6 +59,36 @@ export function BrowserScreen({ siteKey, onReturnHome }: Props) {
           onLoadEnd={() => setApplying(false)}
           style={styles.webview}
         />
+
+        {applying ? (
+          <View pointerEvents="none" style={styles.applyingOverlay}>
+            <View style={styles.applyingIcon}>
+              <SlidersHorizontal size={42} color="#FFFFFF" />
+            </View>
+            <Text style={[theme.typography.label, styles.applyingSite]}>
+              {rule.displayName}
+            </Text>
+            <Text style={[theme.typography.title, styles.applyingTitle]}>
+              Applying your preferences
+            </Text>
+            <Text style={[theme.typography.cardTitle, styles.applyingSubtitle]}>
+              Setting up content filters for {rule.displayName}
+            </Text>
+            <View style={styles.loadingDots}>
+              <View style={styles.loadingDotMuted} />
+              <View style={styles.loadingDotActive} />
+              <View style={styles.loadingDotMuted} />
+            </View>
+          </View>
+        ) : null}
+
+        <View testID="browser-timer-overlay" pointerEvents="none" style={styles.timerOverlay}>
+          <Clock3 size={17} color="#85858B" />
+          <Text style={[theme.typography.cardTitle, styles.statText]}>
+            {formatElapsedSeconds(elapsedSeconds)}
+          </Text>
+        </View>
+
         <Pressable
           testID="browser-toolbar-toggle"
           accessibilityRole="button"
@@ -144,28 +165,6 @@ export function BrowserScreen({ siteKey, onReturnHome }: Props) {
           </View>
         ) : null}
 
-        {applying ? (
-          <View pointerEvents="none" style={styles.applyingOverlay}>
-            <View style={styles.applyingIcon}>
-              <SlidersHorizontal size={42} color="#FFFFFF" />
-            </View>
-            <Text style={[theme.typography.label, styles.applyingSite]}>
-              {rule.displayName}
-            </Text>
-            <Text style={[theme.typography.title, styles.applyingTitle]}>
-              Applying your preferences
-            </Text>
-            <Text style={[theme.typography.cardTitle, styles.applyingSubtitle]}>
-              Setting up content filters for {rule.displayName}
-            </Text>
-            <View style={styles.loadingDots}>
-              <View style={styles.loadingDotMuted} />
-              <View style={styles.loadingDotActive} />
-              <View style={styles.loadingDotMuted} />
-            </View>
-          </View>
-        ) : null}
-
         {accountManagerOpen ? (
           <View testID="account-manager" style={styles.accountSheet}>
             <View style={styles.accountCard}>
@@ -201,20 +200,27 @@ export function BrowserScreen({ siteKey, onReturnHome }: Props) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
-  statusBar: {
-    minHeight: 56,
-    paddingHorizontal: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#D7D7D7',
-    backgroundColor: '#FFFFFF',
-  },
-  timerWrap: { flexDirection: 'row', alignItems: 'center', gap: 7, flexShrink: 1 },
   statText: { color: '#111111', fontSize: 18 },
   browserPane: { flex: 1, overflow: 'hidden' },
   webview: { flex: 1 },
+  timerOverlay: {
+    position: 'absolute',
+    left: 14,
+    top: 14,
+    minHeight: 38,
+    borderRadius: 19,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    shadowColor: '#000000',
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    zIndex: 20,
+  },
   menuButton: {
     position: 'absolute',
     right: 22,
@@ -230,6 +236,7 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
     elevation: 7,
+    zIndex: 20,
   },
   toolbar: {
     position: 'absolute',
@@ -248,6 +255,7 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 8 },
     elevation: 8,
+    zIndex: 22,
   },
   toolbarButton: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   toolbarDivider: { width: 1, height: 36, backgroundColor: 'rgba(0,0,0,0.12)', marginHorizontal: 4 },
@@ -281,6 +289,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 16,
     backgroundColor: '#E94F89',
+    zIndex: 5,
   },
   applyingIcon: {
     width: 104,

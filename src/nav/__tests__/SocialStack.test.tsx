@@ -37,6 +37,14 @@ describe('SocialStack', () => {
     expect(screen.getByTestId('mock-webview')).toBeTruthy();
   });
 
+  it('keeps BrowserScreen as the only visible app shell when a site is open', () => {
+    renderStack();
+    fireEvent.press(screen.getByTestId('site-card-instagram'));
+    expect(screen.getByTestId('screen-browser')).toBeTruthy();
+    expect(screen.queryByText('Stillpoint Social')).toBeNull();
+    expect(screen.getByTestId('browser-toolbar-toggle')).toBeTruthy();
+  });
+
   it('routes through the friction gate when a focus session is active', () => {
     useSessionStore.setState({
       activeSession: {

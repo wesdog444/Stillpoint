@@ -44,10 +44,17 @@ describe('BrowserScreen', () => {
 
   it('renders a timer-only top bar', () => {
     render(<BrowserScreen siteKey="instagram" />);
+    expect(screen.getByTestId('browser-timer-overlay')).toBeTruthy();
     expect(screen.getByText('0:00')).toBeTruthy();
     expect(screen.queryByText('0 ads')).toBeNull();
     expect(screen.queryByText('0 suggested')).toBeNull();
     expect(screen.queryByText('Block these')).toBeNull();
+  });
+
+  it('lets the WebView own the screen instead of rendering a separate site header', () => {
+    render(<BrowserScreen siteKey="instagram" />);
+    expect(screen.queryByTestId('browser-status-bar')).toBeNull();
+    expect(screen.getByTestId('mock-webview')).toBeTruthy();
   });
 
   it('keeps the timer stable from elapsed wall-clock time', () => {
