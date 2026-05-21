@@ -94,3 +94,9 @@ jest.mock('react-native-webview', () => {
     React.createElement(View, { testID: 'mock-webview', ...props });
   return { WebView, default: WebView };
 });
+
+// --- expo-notifications mock: permission request resolves to "granted" ---
+jest.mock('expo-notifications', () => ({
+  requestPermissionsAsync: jest.fn(async () => ({ status: 'granted' })),
+  getPermissionsAsync: jest.fn(async () => ({ status: 'granted' })),
+}));
