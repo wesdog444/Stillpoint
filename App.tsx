@@ -7,10 +7,13 @@ import { fontAssets } from './src/theme/fonts';
 import { theme } from './src/theme/theme';
 import { initDatabase } from './src/data/database';
 import { RootNavigator } from './src/nav/RootNavigator';
+import { useSettingsStore } from './src/state/settingsStore';
+import { OnboardingFlow } from './src/onboarding/OnboardingFlow';
 
 export default function App() {
   const [fontsLoaded] = useFonts(fontAssets);
   const [dbReady, setDbReady] = useState(false);
+  const onboardingComplete = useSettingsStore((s) => s.onboardingComplete);
 
   useEffect(() => {
     initDatabase();
@@ -35,7 +38,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      <RootNavigator />
+      {onboardingComplete ? <RootNavigator /> : <OnboardingFlow />}
     </SafeAreaProvider>
   );
 }

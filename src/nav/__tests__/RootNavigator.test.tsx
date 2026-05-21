@@ -11,20 +11,22 @@ describe('RootNavigator', () => {
     initDatabase();
   });
 
-  it('renders the Home screen by default', () => {
+  it('renders the Home screen by default', async () => {
     render(<RootNavigator />);
-    expect(screen.getByTestId('screen-home')).toBeTruthy();
+    expect(await screen.findByTestId('screen-home')).toBeTruthy();
   });
 
-  it('shows all five tab labels', () => {
+  it('shows all five tab labels', async () => {
     render(<RootNavigator />);
+    await screen.findByTestId('screen-home');
     for (const label of ['Home', 'Social', 'Blocks', 'Stats', 'Profile']) {
       expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     }
   });
 
-  it('navigates to the Stats screen when its tab is pressed', () => {
+  it('navigates to the Stats screen when its tab is pressed', async () => {
     render(<RootNavigator />);
+    await screen.findByTestId('screen-home');
     fireEvent.press(screen.getByText('Stats'));
     expect(screen.getByTestId('screen-stats')).toBeTruthy();
   });

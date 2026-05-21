@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme/theme';
 import { TABS } from './tabs';
+import { linking } from './linking';
 
 const Tab = createBottomTabNavigator();
 
@@ -10,7 +11,7 @@ export function RootNavigator() {
   const theme = useTheme();
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
