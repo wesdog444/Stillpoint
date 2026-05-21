@@ -1,66 +1,73 @@
 Stillpoint handoff from Claude to Codex (or a fresh Claude session)
-Date: 2026-05-20
+Date: 2026-05-20 (updated after Plan 5 review + Plan 6 written)
 Current branch when written: master
 
 === READ FIRST ===
-- docs/superpowers/specs/2026-05-19-stillpoint-design.md  (the product spec)
-- docs/superpowers/plans/2026-05-20-sanitized-social-browser.md  (Plan 4 — the next plan to EXECUTE)
+- AGENTS.md  (note: UI UX Pro Max must be invoked before building/changing UI)
+- docs/superpowers/specs/2026-05-19-stillpoint-design.md  (product spec)
+- docs/superpowers/plans/2026-05-20-stats-and-insights.md  (Plan 6 — the next plan to EXECUTE)
 - C:\Users\wesle\.claude\CLAUDE.md  (global working preferences, incl. handoff rules)
-- The prior handoff CODEX_TO_CLAUDE_HANDOFF.txt remains accurate for phases 1-3.
 
 === SESSION SUMMARY (what Claude did this session) ===
-- Read the previous Codex handoff and verified the completed state of the project.
-- Independently re-verified master: `npx tsc --noEmit` clean, `npx jest` = 18 suites / 88 tests
-  passing, `npx expo-doctor` = 17/17. Confirmed Codex's reported state is accurate.
-- Confirmed merged phases: Foundation, Focus Engine Core, Focus UI Core, Focus UI Polish.
-- Wrote Plan 4 (Sanitized Social Browser) using the writing-plans skill, self-reviewed it
-  (added sharedCookiesEnabled/domStorageEnabled for login persistence per spec 6.3), and
-  committed it. Plan 4 was NOT executed — handing that off here to stay within context budget.
+- Read CODEX_PLAN5_HANDOFF.txt and verified the post-Plan-5 state of master.
+- FOUND AND FIXED A REAL BUG that Codex's "124 tests passed" missed: master was actually
+  RED (1 test failing). Root cause: sessionStore stored `started_at` via
+  `Date.toISOString()` (UTC), but the day-bucketed stat queries
+  (getCompletedFocusMinutesForDay / getSessionsForDay) extract the date with substr() and
+  compare it to the LOCAL todayKey(). Across the UTC/local day boundary they mismatched, so
+  "focused minutes today" read 0. Codex's verification passed only because UTC and local
+  happened to be the same calendar day when Codex ran it.
+  Fix: added `localTimestamp()` to src/lib/dates.ts and used it for started_at/ended_at so
+  the date portion is the local day. Added 2 tests. Fixed on branch `fix-session-timezone`,
+  merged to master (ff), branch deleted. Master is now GREEN: 27 suites / 126 tests.
+- Wrote Plan 6 (Stats & Insights) with the writing-plans skill; consulted UI UX Pro Max for
+  chart guidance (value-labeled bars, accessible per-bar labels). Self-reviewed it.
+- Did NOT execute Plan 6 — handing that off here to stay within context budget.
 
 === CURRENT STATE ===
-- Branch: master. Worktree clean except this handoff file.
-- Latest verification (this session, on master): tsc clean, jest 18 suites / 88 tests pass,
-  expo-doctor 17/17.
-- New since last handoff: docs/superpowers/plans/2026-05-20-sanitized-social-browser.md
-  (committed: "docs: add Sanitized Social Browser implementation plan (Plan 4)").
-- Nothing is half-done. Plan 4 is a written, self-reviewed, unexecuted plan.
+- Branch: master. Worktree clean except the pre-existing untracked CC-Session-Logs/ folder.
+- Verified this session on master: `npx tsc --noEmit` clean; `npx jest` = 27 suites /
+  126 tests passing.
+- Merged phases: Foundation, Focus Engine Core, Focus UI Core, Focus UI Polish,
+  Sanitized Social Browser (Plan 4), Friction Layer (Plan 5).
+- New committed files this session:
+  - src/lib/dates.ts + test (localTimestamp), src/state/sessionStore.ts (bug fix)
+  - docs/superpowers/plans/2026-05-20-stats-and-insights.md (Plan 6)
+- Plan 6 is written, self-reviewed, NOT executed.
 
-=== STEP-BY-STEP: THE IN-FLIGHT TASK (execute Plan 4) ===
-1. Confirm `git status` is clean on master.
-2. Create a feature branch: `git checkout -b sanitized-social-browser`.
-3. Execute docs/superpowers/plans/2026-05-20-sanitized-social-browser.md task-by-task using
-   the subagent-driven-development workflow (fresh implementer per task; spec-review each task).
-   The plan has 7 tasks:
-     T1 add react-native-webview + Jest mock
-     T2 sanitizer types + per-site rule registry
-     T3 injection builder
-     T4 Social screen site cards (note: a transient tsc error in tabs.ts is expected after
-        T4 and is resolved by T6 — the plan documents this)
-     T5 BrowserScreen WebView shell
-     T6 Social stack navigation
-     T7 full-suite verification (jest, tsc, expo export, expo-doctor)
-4. After T7 passes, finish the branch: merge to master via fast-forward, re-verify on master
+=== STEP-BY-STEP: THE IN-FLIGHT TASK (execute Plan 6) ===
+1. Confirm `git status` is clean on master (CC-Session-Logs/ untracked is fine to ignore).
+2. Create a feature branch: `git checkout -b stats-and-insights`.
+3. Execute docs/superpowers/plans/2026-05-20-stats-and-insights.md task-by-task with the
+   subagent-driven-development workflow (fresh implementer per task; spec-review each).
+   7 tasks: statsRepository / intentions journal query / WeeklyChart / Stats screen /
+   IntentionsJournal screen / StatsStack nav / verification.
+   IMPORTANT for Tasks 2 & 5: the plan does not know Plan 5's exact intention SAVE-function
+   name. Task 2 Step 1 says to open src/data/intentionRepository.ts first and use the real
+   exported name (the tests use a `?? recordIntention ?? insertIntention` fallback as a
+   guard — replace it with the actual name once known).
+4. After Task 7 passes, finish the branch: merge to master (ff), re-verify on master
    (jest + tsc + expo export + expo-doctor), delete the feature branch.
 5. Update this handoff with the completed state.
-Notes: the project is Windows; use `git -c user.name="Wesle" -c user.email="wesleycarr7@gmail.com"
-commit ...` since git identity is not global. Re-check the Expo SDK 54 docs (AGENTS.md
-instruction) before coding, especially for react-native-webview.
+Notes: Windows; commit with `git -c user.name="Wesle" -c user.email="wesleycarr7@gmail.com"
+commit ...`. Re-check Expo SDK 54 docs before coding (AGENTS.md). Invoke UI UX Pro Max for
+the UI tasks (AGENTS.md requirement) — already consulted for the chart while planning.
 
 === ROADMAP FROM HERE ===
-- Plan 4: Sanitized Social Browser  <-- WRITTEN, ready to execute (this handoff)
-- Plan 5: Friction Layer — gate opening a sanitized site behind the active focus session's
-  friction mode (hard / soft / intention / cheat); persist intention entries + cheat-pass usage.
-- Plan 6: Stats & Insights — session history, weekly totals, streak visuals, intentions journal.
+- Plan 6: Stats & Insights  <-- WRITTEN, ready to execute (this handoff)
+  (Note: a full session-history list screen was deliberately deferred — see the end of the
+  Plan 6 doc. Add it as a small follow-up slice if desired.)
 - Plan 7: Onboarding & Shortcuts — Personal Edition sideload limits, Shortcuts automation
   walkthrough, stillpoint:// deep links, App Intents.
-- Plan 8: CI / dev-build pipeline — GitHub Actions macOS runner producing an unsigned .ipa for
-  Sideloadly; real-device smoke test for op-sqlite + react-native-mmkv + react-native-webview.
+- Plan 8: CI / dev-build pipeline — GitHub Actions macOS runner producing an unsigned .ipa
+  for Sideloadly; real-device smoke test for the native modules.
 
 === NOTES / RISKS ===
-- Sanitizer rules in Plan 4 are first-pass CSS selectors; they WILL need maintenance as the
-  social sites change markup. A future plan may add remote-updatable rules.
-- Sanitized browsing stays inside Stillpoint's own WebView only. Never attempt to modify the
-  native Instagram/TikTok/X/YouTube apps. UI copy says "sanitize", never "block".
-- The app still needs a real dev build / device smoke test (native modules) — that is Plan 8.
-- Personal Edition: OS-enforced app blocking is out of scope (no Apple entitlement); see spec
-  section 2 for the full rationale.
+- LESSON FROM THIS SESSION: day-bucketed queries must use LOCAL dates consistently. Session
+  timestamps are now local (localTimestamp()). Keep any new date logic local-time based.
+- Sanitizer rules are first-pass; will need maintenance as sites change markup.
+- Friction only gates Stillpoint's own WebView. Never modify native social apps. Copy says
+  "sanitize"/"calm", never "block".
+- The app still needs a real dev build / device smoke test (native modules) — Plan 8.
+- Personal Edition: OS-enforced app blocking is out of scope (no Apple entitlement) — see
+  spec section 2.
