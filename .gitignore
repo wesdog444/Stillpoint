@@ -45,3 +45,6 @@ yarn-error.*
 __pycache__/
 *.pyc
 .tmp-export/
+
+# Local session logs
+CC-Session-Logs/
