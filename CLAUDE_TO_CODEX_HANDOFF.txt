@@ -1,70 +1,49 @@
-Stillpoint handoff from Claude to Codex (or a fresh Claude session)
-Date: 2026-05-20 (updated after Plan 6 executed + merged)
-Current branch when written: master
+Stillpoint handoff — final state after Plan 8 authored
+Date: 2026-05-21
+Current branch: master
 
-=== READ FIRST ===
-- AGENTS.md  (UI UX Pro Max must be invoked before building/changing UI)
-- docs/superpowers/specs/2026-05-19-stillpoint-design.md  (product spec)
-- C:\Users\wesle\.claude\CLAUDE.md  (global working preferences, incl. handoff rules)
-- For the NEXT plan: there is no plan written yet for Plan 7 — see roadmap below.
-
-=== SESSION SUMMARY (what Claude did this session) ===
-- Reviewed CODEX_PLAN5_HANDOFF.txt and re-verified master. FOUND master was RED (1 failing
-  test) — a real timezone bug: sessionStore stored started_at in UTC, day-bucketed stat
-  queries compared it to a LOCAL todayKey(). Fixed it (added localTimestamp() to dates.ts),
-  merged the fix to master.
-- Wrote Plan 6 (Stats & Insights) and then EXECUTED it fully via subagent-driven development
-  (7 tasks, fresh implementer + spec-review each). Corrected Tasks 2/5 mid-flight because the
-  plan had guessed the intention-repository API: the real save fn is
-  insertIntention({createdAt, text, siteKey, sessionId}) and getRecentIntentions already
-  existed; Task 2 added getAllIntentions().
-- Merged the `stats-and-insights` branch into master (ff), deleted it.
+=== SESSION SUMMARY ===
+- Verified master green (36 suites / 160 tests, tsc clean) — Plans 1-7 all merged.
+- Wrote Plan 8 (CI Build & Sideload): docs/superpowers/plans/2026-05-21-ci-build-and-sideload.md.
+- Executed Plan 8 tasks 2-4 locally (the parts not needing a GitHub account):
+  gitignored CC-Session-Logs/, added the GitHub Actions macOS build workflow, wrote
+  docs/SIDELOAD.md. Committed: "ci: add unsigned-IPA build workflow and sideload guide".
+- Plan 8 tasks 1 and 5 are owner-gated (create GitHub repo, push, run CI) — see below.
 
 === CURRENT STATE ===
-- Branch: master. Worktree clean except the pre-existing untracked CC-Session-Logs/ folder.
-- Verified on master this session: `npx tsc --noEmit` clean; `npx jest` = 32 suites /
-  144 tests passing; `npx expo export --platform ios` succeeded; `npx expo-doctor` 17/17.
-- Merged phases: Foundation, Focus Engine Core, Focus UI Core, Focus UI Polish,
-  Sanitized Social Browser (Plan 4), Friction Layer (Plan 5), Stats & Insights (Plan 6).
-- Plan 6 shipped: statsRepository (getWeeklyFocusMinutes), intentionRepository.getAllIntentions,
-  WeeklyChart (plain-View bar chart), StatsScreen overview (week total + chart + streak cards
-  + intentions preview), IntentionsJournalScreen, StatsStack navigation.
+- Branch: master. Working tree CLEAN.
+- All app code: Plans 1-7 complete and merged. Verified: 36 suites / 160 tests pass,
+  tsc clean, expo export builds, expo-doctor 17/17.
+- New this session: docs/superpowers/plans/2026-05-21-ci-build-and-sideload.md,
+  .github/workflows/build-ipa.yml, docs/SIDELOAD.md, .gitignore (CC-Session-Logs/).
+- The repo has NO git remote yet.
 
-=== STEP-BY-STEP: WHAT TO DO NEXT (write + execute Plan 7) ===
-1. Confirm `git status` clean on master.
-2. Use the writing-plans skill to WRITE Plan 7 (Onboarding & Shortcuts) — it does not exist
-   yet. Save to docs/superpowers/plans/2026-05-20-onboarding-and-shortcuts.md (or next date).
-   Suggested Plan 7 scope (see spec sections 2, 5.7, 6.6):
-     - Onboarding flow screens: welcome + Personal Edition philosophy; notification
-       permission request; the guided Shortcuts-automation walkthrough.
-     - App Intents (Swift in the main target via an Expo config plugin) exposing
-       "Start Focus Session", "Open Sanitized <site>", "Log a Distraction".
-     - stillpoint:// deep-link routing (e.g. stillpoint://sanitized/instagram,
-       stillpoint://breathe).
-     - settingsStore already has onboardingComplete — gate the onboarding flow on it.
-   Consider splitting: Plan 7a = onboarding screens + deep links (pure RN, testable);
-   Plan 7b = App Intents (needs the one bit of Swift + a config plugin).
-3. Then execute it with subagent-driven development; branch, tasks, spec-review each, merge.
-4. Update this handoff afterward.
-Notes: Windows; commit with `git -c user.name="Wesle" -c user.email="wesleycarr7@gmail.com"
-commit ...`. Re-check Expo SDK 54 docs before coding. Invoke UI UX Pro Max for UI tasks.
+=== STEP-BY-STEP: WHAT THE OWNER MUST DO (Plan 8 tasks 1 & 5) ===
+These cannot be done from Windows by an agent — they need the owner's GitHub account.
+1. Create a private GitHub repo named `stillpoint` (https://github.com/new), OR with the
+   gh CLI: `gh repo create stillpoint --private --source . --remote origin --push`.
+2. If not pushed by gh: `git remote add origin https://github.com/<owner>/stillpoint.git`
+   then `git push -u origin master`.
+3. The push triggers the "Build unsigned IPA" workflow (GitHub repo -> Actions tab).
+4. When it finishes (~15-30 min), download the `Stillpoint-unsigned-ipa` artifact.
+5. Follow docs/SIDELOAD.md to sign + install with Sideloadly.
+If the CI build fails: Plan 8 Task 5 Step 3 lists the likely fixes (scheme name, build-
+product path, transient pod errors) — iterate on .github/workflows/build-ipa.yml.
 
-=== ROADMAP FROM HERE ===
-- Plan 7: Onboarding & Shortcuts — onboarding flow, Shortcuts automation walkthrough,
-  App Intents, stillpoint:// deep links.  <-- NEXT (needs a plan written)
-- Plan 8: CI / dev-build pipeline — GitHub Actions macOS runner producing an unsigned .ipa
-  for Sideloadly; real-device smoke test for the native modules.
-- Optional small slice: a session-history list screen under Stats (deliberately deferred
-  from Plan 6 — see the end of docs/superpowers/plans/2026-05-20-stats-and-insights.md;
-  getRecentSessions already exists in sessionRepository).
+=== ROADMAP / WHAT REMAINS ===
+- Plan 8 execution: just the owner-gated steps above. After that, Stillpoint v1 is
+  feature-complete AND installable on a personal iPhone.
+- Optional Plan 9 (Swift App Intents): exposes "Start Focus Session" / "Open Sanitized
+  <site>" / "Log a Distraction" as iOS Shortcuts ACTIONS via native Swift + an Expo
+  config plugin. NOT required for v1 — the redirect automations already work through the
+  shipped stillpoint:// deep links. Best done by someone who can run an Xcode build.
 
 === NOTES / RISKS ===
-- LESSON: day-bucketed queries must use LOCAL dates consistently. Session timestamps are now
-  local via localTimestamp(). Keep new date logic local-time based.
-- When a plan modifies an existing repository, the plan-writer should READ that repo first —
-  Plan 6 guessed the intention API and Tasks 2/5 needed mid-flight correction.
-- Sanitizer rules are first-pass; will need maintenance as sites change markup.
-- Friction/sanitizer only affect Stillpoint's own WebView. Never modify native social apps.
-  UI copy says "sanitize"/"calm", never "block".
-- The app still needs a real dev build / device smoke test (native modules) — Plan 8.
-- Personal Edition: OS-enforced app blocking is out of scope (no Apple entitlement) — spec §2.
+- The CI workflow's `-scheme Stillpoint` / `-workspace Stillpoint.xcworkspace` assume the
+  prebuild scheme name matches app.json `name`. If the first CI run fails on the scheme,
+  read the log for the real name and update the workflow.
+- 7-day re-sign cycle with a free Apple ID is expected (docs/SIDELOAD.md explains it).
+- Personal Edition: OS-enforced native-app blocking is permanently out of scope (no Apple
+  entitlement). Sanitizer/friction only affect Stillpoint's own WebView.
+- App still needs a real-device smoke test once installed (native modules: op-sqlite,
+  react-native-mmkv, react-native-webview, expo-notifications).
