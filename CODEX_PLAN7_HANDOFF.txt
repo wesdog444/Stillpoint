@@ -37,6 +37,12 @@ SESSION SUMMARY
   - Added `src/onboarding/OnboardingFlow.tsx`.
   - Verified green: 5 onboarding flow tests passed.
   - Committed the task.
+- Task 5 completed:
+  - Wrote `src/nav/__tests__/linking.test.ts` first.
+  - Verified red: missing `../linking`.
+  - Added `src/nav/linking.ts` with `stillpoint://` prefixes and `sanitized/:siteKey` mapping.
+  - Verified green: 3 linking tests passed.
+  - Committed the task.
 
 COMMITS CREATED
 - 846aa94 chore: add expo-notifications and its Jest mock
@@ -46,6 +52,8 @@ COMMITS CREATED
 - 0234d4a feat: add onboarding step content
 - e6a5e06 docs: checkpoint Plan 7 handoff after onboarding content
 - dd039f7 feat: add onboarding flow component
+- 95e3d2b docs: checkpoint Plan 7 handoff after onboarding flow
+- a24cd94 feat: add stillpoint:// deep-link configuration
 
 VERIFICATION SO FAR
 - `npx jest`: 32 suites / 144 tests passed after Task 1.
@@ -53,18 +61,18 @@ VERIFICATION SO FAR
 - `npx jest src/lib/__tests__/notifications.test.ts`: 3 tests passed after Task 2.
 - `npx jest src/onboarding/__tests__/steps.test.ts`: 5 tests passed after Task 3.
 - `npx jest src/onboarding/__tests__/OnboardingFlow.test.tsx`: 5 tests passed after Task 4.
+- `npx jest src/nav/__tests__/linking.test.ts`: 3 tests passed after Task 5.
 
 IN-FLIGHT TASK
-Next task is Task 5: Deep-link configuration.
+Next task is Task 6: Wire onboarding gating and deep linking into the app.
 Steps:
-1. Add `src/nav/__tests__/linking.test.ts`.
-2. Run it and expect failure because `../linking` does not exist.
-3. Add `src/nav/linking.ts`.
-4. Re-run focused test and expect 3 tests passing.
-5. Commit `feat: add stillpoint:// deep-link configuration`.
+1. Update `src/nav/RootNavigator.tsx` to pass `linking={linking}` into `NavigationContainer`.
+2. Update `App.tsx` to render `OnboardingFlow` until `settingsStore.onboardingComplete` is true.
+3. Run `npx tsc --noEmit`.
+4. Run `npx jest src/nav src/onboarding`.
+5. Commit `feat: gate onboarding on first run and enable deep linking`.
 
 REMAINING PLAN 7 ROADMAP
-- T5 stillpoint:// deep-link config.
 - T6 App.tsx onboarding gate + RootNavigator linking.
 - T7 full verification: `npx jest`, `npx tsc --noEmit`, `npx expo export --platform ios --output-dir ./.tmp-export`, cleanup `.tmp-export`, `npx expo-doctor`; then merge to master and re-verify.
 
