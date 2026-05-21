@@ -1,49 +1,93 @@
-Stillpoint handoff — final state after Plan 8 authored
+Stillpoint handoff — v1.1 polish round (user feedback after first device install)
 Date: 2026-05-21
 Current branch: master
 
+>>> TO CODEX: Please BUILD the v1.1 updates below. Brainstorm the designs first
+>>> (brainstorming skill), write a spec + plan (writing-plans skill), then execute
+>>> it subagent-driven with spec reviews, verify, and merge to master — the same
+>>> loop used for Plans 1-8. Invoke the project-local UI UX Pro Max skill before
+>>> any UI work (see AGENTS.md). Re-check the Expo SDK 54 docs before coding.
+
 === SESSION SUMMARY ===
-- Verified master green (36 suites / 160 tests, tsc clean) — Plans 1-7 all merged.
-- Wrote Plan 8 (CI Build & Sideload): docs/superpowers/plans/2026-05-21-ci-build-and-sideload.md.
-- Executed Plan 8 tasks 2-4 locally (the parts not needing a GitHub account):
-  gitignored CC-Session-Logs/, added the GitHub Actions macOS build workflow, wrote
-  docs/SIDELOAD.md. Committed: "ci: add unsigned-IPA build workflow and sideload guide".
-- Plan 8 tasks 1 and 5 are owner-gated (create GitHub repo, push, run CI) — see below.
+- Stillpoint was built through Plans 1-8, pushed to GitHub (github.com/wesdog444/
+  Stillpoint), built by the CI workflow into an unsigned IPA, and the owner
+  sideloaded it onto a real iPhone with Sideloadly. IT RUNS ON DEVICE — onboarding
+  renders, native modules work on real hardware.
+- The owner reviewed it on-device and gave four pieces of v1.1 feedback (below).
+- This handoff captures that feedback as the v1.1 scope to build next.
 
 === CURRENT STATE ===
-- Branch: master. Working tree CLEAN.
-- All app code: Plans 1-7 complete and merged. Verified: 36 suites / 160 tests pass,
-  tsc clean, expo export builds, expo-doctor 17/17.
-- New this session: docs/superpowers/plans/2026-05-21-ci-build-and-sideload.md,
-  .github/workflows/build-ipa.yml, docs/SIDELOAD.md, .gitignore (CC-Session-Logs/).
-- The repo has NO git remote yet.
+- Branch: master, clean. Plans 1-8 complete and merged.
+- Verified earlier: 36 suites / 160 tests pass, tsc clean, expo export builds,
+  expo-doctor 17/17. CI workflow (.github/workflows/build-ipa.yml) produces a
+  working unsigned IPA.
+- App is installed and confirmed running on the owner's iPhone.
 
-=== STEP-BY-STEP: WHAT THE OWNER MUST DO (Plan 8 tasks 1 & 5) ===
-These cannot be done from Windows by an agent — they need the owner's GitHub account.
-1. Create a private GitHub repo named `stillpoint` (https://github.com/new), OR with the
-   gh CLI: `gh repo create stillpoint --private --source . --remote origin --push`.
-2. If not pushed by gh: `git remote add origin https://github.com/<owner>/stillpoint.git`
-   then `git push -u origin master`.
-3. The push triggers the "Build unsigned IPA" workflow (GitHub repo -> Actions tab).
-4. When it finishes (~15-30 min), download the `Stillpoint-unsigned-ipa` artifact.
-5. Follow docs/SIDELOAD.md to sign + install with Sideloadly.
-If the CI build fails: Plan 8 Task 5 Step 3 lists the likely fixes (scheme name, build-
-product path, transient pod errors) — iterate on .github/workflows/build-ipa.yml.
+=== V1.1 FEEDBACK TO BUILD ===
 
-=== ROADMAP / WHAT REMAINS ===
-- Plan 8 execution: just the owner-gated steps above. After that, Stillpoint v1 is
-  feature-complete AND installable on a personal iPhone.
-- Optional Plan 9 (Swift App Intents): exposes "Start Focus Session" / "Open Sanitized
-  <site>" / "Log a Distraction" as iOS Shortcuts ACTIONS via native Swift + an Expo
-  config plugin. NOT required for v1 — the redirect automations already work through the
-  shipped stillpoint:// deep links. Best done by someone who can run an Xcode build.
+(1) ONBOARDING — make it more enticing and interactive.
+    Current state: 4 plain dark text-only steps (Welcome / How Stillpoint works /
+    Gentle reminders / Set up redirect Shortcuts). Functional but flat.
+    Wanted: livelier, more engaging onboarding — imagery/illustration, motion/
+    animation, and interactivity (e.g. let the user pick which social sites they
+    care about DURING onboarding, preview the orb, etc.). Brainstorm the design.
+    Keep the Personal Edition copy honest; keep the "never says block" guard.
 
-=== NOTES / RISKS ===
-- The CI workflow's `-scheme Stillpoint` / `-workspace Stillpoint.xcworkspace` assume the
-  prebuild scheme name matches app.json `name`. If the first CI run fails on the scheme,
-  read the log for the real name and update the workflow.
-- 7-day re-sign cycle with a free Apple ID is expected (docs/SIDELOAD.md explains it).
-- Personal Edition: OS-enforced native-app blocking is permanently out of scope (no Apple
-  entitlement). Sanitizer/friction only affect Stillpoint's own WebView.
-- App still needs a real-device smoke test once installed (native modules: op-sqlite,
-  react-native-mmkv, react-native-webview, expo-notifications).
+(2) BREATHE DEEP LINK — bug: stillpoint://breathe goes nowhere.
+    Plan 7 described a "breathe" landing target for redirect automations on apps
+    with no sanitized version, but it was never built. src/nav/linking.ts has NO
+    `breathe` route and there is no Breathe screen.
+    Wanted: build a real Breathe screen (a calm breathing-exercise interstitial)
+    and add a `breathe` route to the linking config so stillpoint://breathe works.
+
+(3) SCREEN TIME PERMISSIONS — DO NOT BUILD. Permanently out of scope.
+    The owner asked the app to request Screen Time permissions. This is the iOS
+    Family Controls / Screen Time API and requires the Apple entitlement
+    com.apple.developer.family-controls, granted only to reviewed PAID developer
+    accounts. A Sideloadly-signed build cannot have it — adding the code would
+    crash the app / fail install. This is the entire reason Stillpoint is
+    "Personal Edition" (see spec section 2). Do NOT attempt it. The sideload-
+    compatible substitute already exists: the stillpoint:// redirect Shortcuts.
+    If Codex wants to help here, the only honest move is to (politely, in the
+    build summary) restate this constraint — not implement it.
+
+(4) SOCIAL TAB — make it a fully integrated "sanitized app", not a raw browser.
+    Reference app: "SocialLite" (the owner has screenshots; description below).
+    IMPORTANT: SocialLite is itself a WebView wrapper — you cannot natively
+    re-implement Instagram/etc. What makes it feel integrated is the custom chrome
+    AROUND the webview. Build that polish on top of the existing BrowserScreen:
+      - A site list styled like SocialLite: rounded cards, each with the site's
+        real icon, a per-site settings gear, and a chevron. Tagline under the
+        app name. (SocialLite also lists Facebook & Snapchat — consider adding
+        them to the current 4: Instagram, X, YouTube, TikTok.)
+      - A branded transition/loading screen when opening a site ("Applying your
+        preferences — Setting up content filters for <Site>") instead of a blank
+        webview load.
+      - Custom chrome over the webview: a top stats strip (time in session,
+        ads blocked, suggested/feed items removed) with a "Block these" style
+        action, and a floating control toolbar (back / home / refresh / forward /
+        settings) — like SocialLite's.
+      - Heavier, more thorough sanitization so the page genuinely feels calm.
+    The owner's words: "fully integrate the website and then Stillpoint transform
+    into the sanitized app." Goal = it should not feel like Safari popped up.
+
+=== HOW TO BUILD IT ===
+1. Confirm git clean on master. Create a branch, e.g. `v1.1-polish`.
+2. Brainstorm the onboarding redesign and the Social-tab redesign with the owner
+   (use the brainstorming skill + the visual companion; the owner has SocialLite
+   screenshots to share). Items (2) breathe screen is small and mostly mechanical.
+3. Write a spec + plan(s). This is probably two plans: "v1.1 Social experience"
+   and "v1.1 onboarding + breathe". Split if it gets large.
+4. Execute subagent-driven with spec reviews. Invoke UI UX Pro Max for UI tasks.
+5. Verify (jest, tsc, expo export, expo-doctor), merge to master, push.
+6. The owner re-runs the GitHub Action to get a new IPA and re-sideloads.
+
+=== ROADMAP / NOTES ===
+- After v1.1: optional Plan 9 (Swift App Intents — needs a Mac to verify) remains
+  the only other deferred item. Not required for v1.
+- The 7-day Sideloadly re-sign cycle is in effect — the owner re-signs weekly.
+- Sanitizer CSS selectors are first-pass and need maintenance as sites change.
+- Everything sanitized stays inside Stillpoint's own WebView. Never touch the
+  native social apps. UI copy: "sanitize"/"calm", never "block".
+- Real-device smoke test of remaining features (focus sessions, friction,
+  sanitized browser logins) is still worth doing now that the app is installed.
